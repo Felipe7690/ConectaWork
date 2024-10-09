@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class Pesquisar extends StatefulWidget {
   @override
@@ -21,14 +22,14 @@ class _PesquisarState extends State<Pesquisar> {
 
   // Ícones para as categorias
   final List<IconData> iconesCategorias = [
-    Icons.electrical_services,
-    Icons.plumbing,
-    Icons.format_paint,
-    Icons.grass,
-    Icons.cleaning_services,
-    Icons.build,
-    Icons.build_circle,
-    Icons.cleaning_services_outlined,
+    FontAwesomeIcons.boltLightning, // Ícone de Eletricista
+    FontAwesomeIcons.wrench, // Ícone de Encanador
+    FontAwesomeIcons.paintRoller, // Ícone de Pintor
+    FontAwesomeIcons.tree, // Ícone de Jardinagem
+    FontAwesomeIcons.broom, // Ícone de Faxina
+    FontAwesomeIcons.toolbox, // Ícone de Reparos Gerais
+    FontAwesomeIcons.gear, // Ícone de Serviços de Montagem
+    FontAwesomeIcons.soap, // Ícone de Limpeza Pós-Obra
   ];
 
   // Número de categorias exibidas
@@ -112,7 +113,7 @@ class _PesquisarState extends State<Pesquisar> {
                   crossAxisCount: 2, // 2 colunas
                   crossAxisSpacing: 8, // Espaçamento horizontal entre os ícones
                   mainAxisSpacing: 8, // Espaçamento vertical entre os ícones
-                  childAspectRatio: 0.9,
+                  childAspectRatio: 1.5,
                 ),
                 itemCount: categoriasExibidas,
                 itemBuilder: (context, index) {
@@ -121,15 +122,15 @@ class _PesquisarState extends State<Pesquisar> {
                     children: [
                       Icon(
                         iconesCategorias[index],
-                        size: 50,
+                        size: 40,
                         color: Color.fromRGBO(0, 74, 173, 1),
                       ),
                       SizedBox(
-                          height: 5), // Espaçamento entre o ícone e o texto
+                          height: 7), // Espaçamento entre o ícone e o texto
                       Text(
                         categorias[index],
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
