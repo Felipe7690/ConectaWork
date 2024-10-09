@@ -1,7 +1,6 @@
-// lib/pages/home.dart
 import 'package:flutter/material.dart';
 import 'package:trabalho_conecta_work/components/my_app_bar.dart';
-import 'package:trabalho_conecta_work/components/my_bottom_bar.dart'; // Importando o MyBottomBar
+import 'package:trabalho_conecta_work/components/my_bottom_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,7 +12,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController tabController;
-
   int currentPage = 0;
   final List<Color> colors = [Colors.blue, Colors.green, Colors.red];
   final Color unselectedColor = const Color.fromARGB(255, 255, 255, 255);
@@ -23,7 +21,6 @@ class _HomePageState extends State<HomePage>
     super.initState();
     tabController = TabController(length: 3, vsync: this);
 
-    // Listener para atualizar o índice atual
     tabController.addListener(() {
       if (!tabController.indexIsChanging) {
         setState(() {
@@ -44,11 +41,17 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       backgroundColor: const Color.fromRGBO(248, 248, 248, 1),
       appBar: MyAppBar(),
-      bottomNavigationBar: MyBottomBar(
-        tabController: tabController,
-        colors: colors,
-        unselectedColor: unselectedColor,
-        currentPage: currentPage,
+      body: Column(
+        children: [
+          Expanded(
+            child: MyBottomBar(
+              tabController: tabController,
+              colors: colors,
+              unselectedColor: unselectedColor,
+              currentPage: currentPage,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-// lib/components/my_bottom_bar.dart
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
@@ -80,6 +79,9 @@ class MyBottomBar extends StatelessWidget {
             ),
           ),
           Center(
+            child: Pesquisar(),
+          ),
+          Center(
             child: Container(
               height: 500,
               width: 300,
@@ -100,9 +102,6 @@ class MyBottomBar extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-          Center(
-            child: Pesquisar(),
           ),
         ],
       ),
