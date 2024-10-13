@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
+import 'package:trabalho_conecta_work/pages/perfil.dart';
 import 'package:trabalho_conecta_work/pages/pesquisar.dart';
 
 class MyBottomBar extends StatelessWidget {
@@ -82,26 +83,7 @@ class MyBottomBar extends StatelessWidget {
             child: Pesquisar(),
           ),
           Center(
-            child: Container(
-              height: 500,
-              width: 300,
-              decoration: BoxDecoration(
-                color: const Color.fromRGBO(235, 235, 235, 1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 50, vertical: 100),
-              child: Center(
-                child: Text(
-                  "Aula de Mobile",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            child: Profile(),
           ),
         ],
       ),
