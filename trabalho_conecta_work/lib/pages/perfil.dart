@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:trabalho_conecta_work/pages/editar perfil.dart';
 class Profile extends StatelessWidget {
   const Profile({super.key});
 
@@ -9,7 +9,6 @@ class Profile extends StatelessWidget {
       body: Center(
         child: Container(
           width: 300,
-
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -51,28 +50,40 @@ class Profile extends StatelessWidget {
                 leading: const Icon(Icons.dashboard, color: Color.fromRGBO(0, 74, 173, 1),),
                 title: const Text('Dashboard'),
                 onTap: () {
-
+                  // Ação do botão de Dashboard
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet, color: Color.fromRGBO(0, 74, 173, 1),), 
                 title: const Text('Minha carteira'),
                 onTap: () {
-
+                  // Ação do botão de Carteira
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.mail, color: Color.fromRGBO(0, 74, 173, 1),),
                 title: const Text('Propostas'),
                 onTap: () {
-
+                  // Ação do botão de Propostas
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.settings, color: Color.fromRGBO(0, 74, 173, 1),),
                 title: const Text('Editar perfil'),
                 onTap: () {
-
+                  // Exibe o BottomSheet com o formulário de edição
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                    ),
+                    builder: (context) {
+                      return const EditProfileSheet();  // Chama a página de edição do perfil
+                    },
+                  );
                 },
               ),
             ],
