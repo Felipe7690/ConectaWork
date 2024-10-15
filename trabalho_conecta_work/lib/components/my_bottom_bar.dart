@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
+import 'package:trabalho_conecta_work/pages/inicio.dart';
 import 'package:trabalho_conecta_work/pages/pesquisar.dart';
 
 class MyBottomBar extends StatelessWidget {
@@ -73,10 +74,7 @@ class MyBottomBar extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         children: [
           Center(
-            child: Image.asset(
-              'assets/imagens/banner1.png', // Caminho da imagem
-              fit: BoxFit.cover, // Ajuste da imagem
-            ),
+            child: Inicio(),
           ),
           Center(
             child: Pesquisar(),

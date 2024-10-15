@@ -7,8 +7,7 @@ class Pesquisar extends StatefulWidget {
   _PesquisarState createState() => _PesquisarState();
 }
 
-class _PesquisarState extends State<Pesquisar> {
-  // Lista de categorias de exemplo
+class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
   final List<String> categorias = [
     'Eletricista',
     'Encanador',
@@ -20,20 +19,56 @@ class _PesquisarState extends State<Pesquisar> {
     'Limpeza Pós-Obra',
   ];
 
-  // Ícones para as categorias
   final List<IconData> iconesCategorias = [
-    FontAwesomeIcons.boltLightning, // Ícone de Eletricista
-    FontAwesomeIcons.wrench, // Ícone de Encanador
-    FontAwesomeIcons.paintRoller, // Ícone de Pintor
-    FontAwesomeIcons.tree, // Ícone de Jardinagem
-    FontAwesomeIcons.broom, // Ícone de Faxina
-    FontAwesomeIcons.toolbox, // Ícone de Reparos Gerais
-    FontAwesomeIcons.gear, // Ícone de Serviços de Montagem
-    FontAwesomeIcons.soap, // Ícone de Limpeza Pós-Obra
+    FontAwesomeIcons.boltLightning,
+    FontAwesomeIcons.wrench,
+    FontAwesomeIcons.paintRoller,
+    FontAwesomeIcons.tree,
+    FontAwesomeIcons.broom,
+    FontAwesomeIcons.toolbox,
+    FontAwesomeIcons.gear,
+    FontAwesomeIcons.soap,
   ];
 
-  // Número de categorias exibidas
   int categoriasExibidas = 4;
+  final FocusNode _focusNode = FocusNode();
+  TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _searchController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Remove o foco e limpa as sugestões ao mudar de tela
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      _focusNode.unfocus();
+      _searchController.clear();
+    }
+  }
+
+  // Filtra as categorias conforme o texto digitado
+  List<SearchFieldListItem<String>> _onSearchChanged(String query) {
+    if (query.isNotEmpty) {
+      return categorias
+          .where((categoria) =>
+              categoria.toLowerCase().contains(query.toLowerCase()))
+          .map((e) => SearchFieldListItem<String>(e))
+          .toList();
+    }
+    return [];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +93,11 @@ class _PesquisarState extends State<Pesquisar> {
                     ),
                   ],
                 ),
-                child: SearchField(
-                  suggestions:
-                      categorias.map((e) => SearchFieldListItem(e)).toList(),
-                  suggestionState: Suggestion.expand,
+                child: SearchField<String>(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  suggestions: [],
+                  suggestionState: Suggestion.hidden, // Inicialmente escondido
                   hint: 'Procurar',
                   searchInputDecoration: SearchInputDecoration(
                     filled: true,
@@ -78,9 +114,10 @@ class _PesquisarState extends State<Pesquisar> {
                     ),
                   ),
                   itemHeight: 50,
-                  onSuggestionTap: (SearchFieldListItem<dynamic> item) {
+                  onSuggestionTap: (SearchFieldListItem<String> item) {
                     print('Categoria selecionada: ${item.item}');
                   },
+                  onSearchTextChanged: (query) => _onSearchChanged(query),
                 ),
               ),
             ),
@@ -96,12 +133,11 @@ class _PesquisarState extends State<Pesquisar> {
                     fontWeight: FontWeight.bold,
                     color: Color.fromRGBO(0, 0, 0, 1),
                   ),
-                  textAlign: TextAlign.center, // Centraliza o texto
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
-
-            SizedBox(height: 10), // Espaço entre o texto e a grid
+            SizedBox(height: 10),
 
             // Grid de ícones de categorias
             Padding(
@@ -110,9 +146,9 @@ class _PesquisarState extends State<Pesquisar> {
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 colunas
-                  crossAxisSpacing: 8, // Espaçamento horizontal entre os ícones
-                  mainAxisSpacing: 8, // Espaçamento vertical entre os ícones
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                   childAspectRatio: 1.5,
                 ),
                 itemCount: categoriasExibidas,
@@ -125,13 +161,11 @@ class _PesquisarState extends State<Pesquisar> {
                         size: 40,
                         color: Color.fromRGBO(0, 74, 173, 1),
                       ),
-                      SizedBox(
-                          height: 7), // Espaçamento entre o ícone e o texto
+                      SizedBox(height: 7),
                       Text(
                         categorias[index],
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -147,8 +181,7 @@ class _PesquisarState extends State<Pesquisar> {
                   ? TextButton(
                       onPressed: () {
                         setState(() {
-                          categoriasExibidas =
-                              categorias.length; // Exibir todas as categorias
+                          categoriasExibidas = categorias.length;
                         });
                       },
                       child: Text(
@@ -159,7 +192,7 @@ class _PesquisarState extends State<Pesquisar> {
                   : TextButton(
                       onPressed: () {
                         setState(() {
-                          categoriasExibidas = 4; // Reduz para o número inicial
+                          categoriasExibidas = 4;
                         });
                       },
                       child: Text(
