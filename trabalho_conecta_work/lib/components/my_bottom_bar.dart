@@ -1,11 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
-<<<<<<< HEAD
 import 'package:trabalho_conecta_work/pages/inicio.dart';
-=======
 import 'package:trabalho_conecta_work/pages/perfil.dart';
->>>>>>> a569721dd8b57f691d0b8851cb6b748d5bfea82c
 import 'package:trabalho_conecta_work/pages/pesquisar.dart';
 
 class MyBottomBar extends StatelessWidget {
