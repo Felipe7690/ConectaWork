@@ -18,6 +18,7 @@ class Inicio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(248, 248, 248, 1),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(top: 20),
@@ -42,10 +43,8 @@ class Inicio extends StatelessWidget {
 
               // Seção "Serviços Populares" com fundo azul e sem bordas nas laterais
               Container(
-                padding: EdgeInsets.all(10), // Padding interno da seção
-                decoration: BoxDecoration(
-                  color: Color.fromRGBO(0, 74, 173, 1), // Fundo azul
-                ),
+                padding: EdgeInsets.all(10),
+                // Padding interno da seção
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -54,9 +53,10 @@ class Inicio extends StatelessWidget {
                       child: Text(
                         'Serviços Populares',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 30,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white, // Cor do texto em branco
+                          color: const Color.fromRGBO(
+                              0, 74, 173, 1), // Cor do texto em branco
                         ),
                         textAlign: TextAlign.center, // Centraliza o texto
                       ),
@@ -88,14 +88,15 @@ class Inicio extends StatelessWidget {
                                     height: 60, // Altura da bola
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle, // Forma circular
-                                      color: Colors.white, // Cor branca
+                                      color: Color.fromRGBO(
+                                          0, 74, 173, 1), // Cor branca
                                     ),
                                     child: Center(
                                       child: Icon(
                                         servico['icone'],
                                         size: 30,
                                         color: Color.fromRGBO(
-                                            0, 74, 173, 1), // Ícone azul
+                                            255, 255, 255, 1), // Ícone azul
                                       ),
                                     ),
                                   ),
@@ -104,8 +105,8 @@ class Inicio extends StatelessWidget {
                                     servico['nome'],
                                     style: TextStyle(
                                       fontSize: 15,
-                                      color: Colors
-                                          .white, // Cor do texto em branco
+                                      color: Color.fromRGBO(0, 74, 173,
+                                          1), // Cor do texto em branco
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

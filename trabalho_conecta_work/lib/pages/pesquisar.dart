@@ -15,7 +15,7 @@ class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
     'Jardinagem',
     'Faxina',
     'Reparos Gerais',
-    'Serviços de Montagem',
+    'Montagem',
     'Limpeza Pós-Obra',
   ];
 
@@ -84,14 +84,7 @@ class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(30),
                 ),
                 child: SearchField<String>(
                   controller: _searchController,
@@ -166,6 +159,7 @@ class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
                         categorias[index],
                         style: TextStyle(
                           fontSize: 15,
+                          color: Color.fromRGBO(0, 74, 173, 1),
                         ),
                         textAlign: TextAlign.center,
                       ),
