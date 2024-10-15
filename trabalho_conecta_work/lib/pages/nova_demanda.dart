@@ -1,8 +1,8 @@
-import 'dart:io'; 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:trabalho_conecta_work/components/my_app_bar.dart';
-import 'package:image_picker/image_picker.dart'; 
+import 'package:image_picker/image_picker.dart';
 
 class NovaDemanda extends StatefulWidget {
   const NovaDemanda({super.key});
@@ -12,76 +12,69 @@ class NovaDemanda extends StatefulWidget {
 }
 
 class _NovaDemandaState extends State<NovaDemanda> {
-  // Controladores para os campos de texto
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  List<XFile>? _imageFiles; // Armazena as imagens selecionadas
+  List<XFile>? _imageFiles;
 
-  // Títulos originais para cada campo
   final String _titlePlaceholder = 'Selecione título da demanda';
   final String _valuePlaceholder = 'Valor';
   final String _locationPlaceholder = 'Localização';
   final String _descriptionPlaceholder = 'Descrição do serviço';
   final String _imagePlaceholder = 'Adicionar Imagens';
 
- 
-  Widget _buildEditableField(String placeholder, TextEditingController controller,
-      {bool isNumeric = false}) {
+  Widget _buildEditableField(String placeholder, TextEditingController controller, {bool isNumeric = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0), 
+      padding: const EdgeInsets.only(bottom: 20.0),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.8, 
+        width: MediaQuery.of(context).size.width * 0.8,
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: Colors.grey[200], 
-          borderRadius: BorderRadius.circular(8.0), // Bordas arredondadas
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8.0),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.2),
               spreadRadius: 2,
               blurRadius: 5,
-              offset: const Offset(0, 3), // Sombra para baixo
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Focus(
           onFocusChange: (hasFocus) {
             if (!hasFocus && controller.text.isEmpty) {
-              controller.text = ''; // Retorna ao texto original se não houver alteração
+              controller.text = '';
             } else if (!hasFocus && controller.text.isNotEmpty) {
-              controller.text = controller.text; // Mantém o texto se foi alterado
+              controller.text = controller.text;
             }
           },
           child: TextField(
             controller: controller,
             decoration: InputDecoration(
-              labelText: controller.text.isEmpty ? placeholder : '', // Esconde o texto original ao editar
-              border: InputBorder.none, // Remove a borda padrão
-              prefixText: isNumeric ? 'R\$ ' : null, 
+              labelText: controller.text.isEmpty ? placeholder : '',
+              border: InputBorder.none,
+              prefixText: isNumeric ? 'R\$ ' : null,
             ),
             keyboardType: isNumeric ? TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
             onTap: () {
-              // Limpa o campo ao tocar
               if (controller.text == placeholder) {
-                controller.clear(); // Limpa o texto placeholder
+                controller.clear();
               }
             },
             onChanged: (value) {
-              // Atualiza a visibilidade do placeholder
               if (isNumeric) {
-                // Formata o valor para real
-                value = value.replaceAll(RegExp(r'[^\d]'), ''); // Remove tudo que não for dígito
+                value = value.replaceAll(RegExp(r'[^\d]'), '');
                 if (value.isNotEmpty) {
-                  double parsedValue = double.parse(value) / 100; // Converte para real
-                  controller.text = parsedValue.toStringAsFixed(2).replaceAll('.', ','); // Formata como moeda
-                  controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length)); // Move o cursor para o final
+                  double parsedValue = double.parse(value) / 100;
+                  controller.text = parsedValue.toStringAsFixed(2).replaceAll('.', ',');
+                  controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
                 } else {
-                  controller.text = ''; // Limpa se vazio
+                  controller.text = '';
                 }
               } else if (value.isEmpty) {
-                controller.text = placeholder; // Se o campo estiver vazio, redefine para o placeholder
+                controller.text = placeholder;
               }
             },
           ),
@@ -90,13 +83,12 @@ class _NovaDemandaState extends State<NovaDemanda> {
     );
   }
 
-  
   Future<void> _selectImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? selectedImages = await picker.pickMultiImage();
     if (selectedImages != null) {
       setState(() {
-        _imageFiles = selectedImages; 
+        _imageFiles = selectedImages;
       });
     }
   }
@@ -104,63 +96,57 @@ class _NovaDemandaState extends State<NovaDemanda> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const MyAppBar(showAddIcon: false), 
-
+      appBar: const MyAppBar(showAddIcon: false),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            
             Row(
-              mainAxisAlignment: MainAxisAlignment.start, 
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const FaIcon(FontAwesomeIcons.chevronLeft, color: Colors.black), // Ícone de voltar
+                  icon: const FaIcon(FontAwesomeIcons.chevronLeft, color: Colors.black),
                   onPressed: () {
-                    Navigator.pop(context); // Volta para a página anterior
+                    Navigator.pop(context);
                   },
                 ),
-                const SizedBox(width: 4), 
+                const SizedBox(width: 4),
               ],
             ),
-            const SizedBox(height: 4), 
-            const Center( 
+            const SizedBox(height: 4),
+            const Center(
               child: Text(
-                'Adicione a demanda específica',
+                'Adicionar nova demanda específica',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color.fromRGBO(0, 0, 0, 1),
                 ),
-                textAlign: TextAlign.center, 
+                textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 8), 
-
-            
+            const SizedBox(height: 8),
             _buildEditableField(_titlePlaceholder, _titleController),
-            _buildEditableField(_valuePlaceholder, _valueController, isNumeric: true), 
+            _buildEditableField(_valuePlaceholder, _valueController, isNumeric: true),
             _buildEditableField(_locationPlaceholder, _locationController),
             _buildEditableField(_descriptionPlaceholder, _descriptionController),
-
-            
             Padding(
-              padding: const EdgeInsets.only(bottom: 20.0), // Aumenta ainda mais o espaçamento abaixo do campo de imagens
+              padding: const EdgeInsets.only(bottom: 20.0),
               child: GestureDetector(
                 onTap: _selectImages,
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.8,
-                  padding: const EdgeInsets.all(12.0), // Aumenta o padding para um botão mais evidente
+                  padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
-                    color: Colors.grey[200], // Cor de fundo leve
-                    borderRadius: BorderRadius.circular(8.0), // Bordas arredondadas
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8.0),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.grey.withOpacity(0.2),
                         spreadRadius: 2,
                         blurRadius: 5,
-                        offset: const Offset(0, 3), // Sombra para baixo
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -176,23 +162,22 @@ class _NovaDemandaState extends State<NovaDemanda> {
                           ),
                           Text(
                             'Toque para adicionar várias imagens',
-                            style: TextStyle(fontSize: 12, color: Colors.grey), // Texto de instrução
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
                       ),
-                      const FaIcon(FontAwesomeIcons.camera), // Ícone da câmera
+                      const FaIcon(FontAwesomeIcons.camera),
                     ],
                   ),
                 ),
               ),
             ),
-            // Exibe as imagens selecionadas
             if (_imageFiles != null && _imageFiles!.isNotEmpty)
               Wrap(
                 spacing: 8.0,
                 children: _imageFiles!.map((image) {
                   return Image.file(
-                    File(image.path), // A classe File deve ser reconhecida agora
+                    File(image.path),
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
