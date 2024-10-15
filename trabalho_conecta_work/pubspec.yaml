@@ -13,7 +13,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_floating_bottom_bar: ^1.2.0 # Use underscores em vez de hífens
   searchfield: ^1.1.6
-  font_awesome_flutter: ^10.1.0 
+  font_awesome_flutter: ^10.1.0
+  image_picker: ^0.8.5+3
 
 dev_dependencies:
   flutter_test:
