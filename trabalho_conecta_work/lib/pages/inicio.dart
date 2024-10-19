@@ -55,23 +55,25 @@ class _InicioState extends State<Inicio> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(248, 248, 248, 1),
+      backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(top: 20),
+          padding: const EdgeInsets.only(top: 0), // Remover o espaço superior
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Carrossel de banners com fundo azul e bordas arredondadas
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 0,
-                ),
+              SafeArea(
+                top: false, // Mantém o SafeArea se necessário
                 child: Container(
+                  decoration: BoxDecoration(),
+                  padding: const EdgeInsets.only(
+                    top: 20,
+                    bottom: 40, // Mantém o espaçamento inferior
+                  ),
                   child: Column(
                     children: [
                       SizedBox(
-                        height: 150,
+                        height: 170,
                         child: PageView.builder(
                           itemCount: banners.length,
                           onPageChanged: (index) {
@@ -109,7 +111,8 @@ class _InicioState extends State<Inicio> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _currentIndex == index
-                                  ? const Color(0xFF004AAD)
+                                  ? const Color(
+                                      0xFFFFFFFF) // Cor branca para o ponto ativo
                                   : Colors.grey,
                             ),
                           );
@@ -119,18 +122,19 @@ class _InicioState extends State<Inicio> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
 
-              // Seção "Serviços Populares" com fundo azul, bordas arredondadas
+              // Seção "Serviços Populares" com fundo branco
               Container(
-                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color.fromRGBO(255, 255, 255, 1),
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30)),
+                ),
+                padding: const EdgeInsets.all(25),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Divider(
-                      color: Color.fromARGB(255, 235, 235, 235), // Cor da linha
-                      thickness: 3, // Espessura da linha
-                    ),
                     Text(
                       'Serviços Populares',
                       style: TextStyle(
@@ -157,15 +161,24 @@ class _InicioState extends State<Inicio> {
                                   width: 80,
                                   height: 90,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF004AAD),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        spreadRadius: 0,
+                                        blurRadius: 2,
+                                        offset: Offset(4, 4),
+                                      )
+                                    ],
+                                    color: const Color.fromARGB(
+                                        255, 255, 255, 255),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Center(
                                     child: FaIcon(
                                       servico['icone'],
                                       size: 40,
-                                      color: const Color.fromARGB(
-                                          255, 255, 255, 255), // Cor do ícone
+                                      color: const Color(
+                                          0xFF004AAD), // Cor do ícone
                                     ),
                                   ),
                                 ),
@@ -179,11 +192,6 @@ class _InicioState extends State<Inicio> {
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                const Divider(
-                                  color: Color.fromARGB(
-                                      255, 235, 235, 235), // Cor da linha
-                                  thickness: 3, // Espessura da linha
-                                ),
                               ],
                             ),
                           );
@@ -193,14 +201,11 @@ class _InicioState extends State<Inicio> {
                   ],
                 ),
               ),
-              const SizedBox(height: 50),
 
+              // Outras seções da página
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(40),
-                      topRight: Radius.circular(40)),
-                  color: const Color(0xFF004AAD),
+                  color: const Color.fromARGB(255, 255, 255, 255),
                 ),
                 padding:
                     const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
@@ -211,7 +216,7 @@ class _InicioState extends State<Inicio> {
                       'Demandas Próximas',
                       style: TextStyle(
                         fontSize: 22,
-                        color: Color.fromARGB(255, 255, 255, 255),
+                        color: Color.fromARGB(255, 0, 0, 0),
                       ),
                     ),
                     const SizedBox(height: 10),

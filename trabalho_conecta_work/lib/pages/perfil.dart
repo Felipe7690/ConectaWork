@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trabalho_conecta_work/pages/editar perfil.dart';
+
 class Profile extends StatelessWidget {
   const Profile({super.key});
 
@@ -16,8 +17,9 @@ class Profile extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.3),
-                blurRadius: 10,
-                spreadRadius: 5,
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: Offset(4, 5),
               ),
             ],
           ),
@@ -36,7 +38,8 @@ class Profile extends StatelessWidget {
                 ),
                 child: const CircleAvatar(
                   radius: 50,
-                  backgroundImage: NetworkImage('https://avatars.githubusercontent.com/u/116851523?v=4'),
+                  backgroundImage: NetworkImage(
+                      'https://avatars.githubusercontent.com/u/116851523?v=4'),
                 ),
               ),
 
@@ -47,28 +50,40 @@ class Profile extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ListTile(
-                leading: const Icon(Icons.dashboard, color: Color.fromRGBO(0, 74, 173, 1),),
+                leading: const Icon(
+                  Icons.dashboard,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
                 title: const Text('Dashboard'),
                 onTap: () {
                   // Ação do botão de Dashboard
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.account_balance_wallet, color: Color.fromRGBO(0, 74, 173, 1),), 
+                leading: const Icon(
+                  Icons.account_balance_wallet,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
                 title: const Text('Minha carteira'),
                 onTap: () {
                   // Ação do botão de Carteira
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.mail, color: Color.fromRGBO(0, 74, 173, 1),),
+                leading: const Icon(
+                  Icons.mail,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
                 title: const Text('Propostas'),
                 onTap: () {
                   // Ação do botão de Propostas
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.settings, color: Color.fromRGBO(0, 74, 173, 1),),
+                leading: const Icon(
+                  Icons.settings,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
                 title: const Text('Editar perfil'),
                 onTap: () {
                   // Exibe o BottomSheet com o formulário de edição
@@ -81,7 +96,7 @@ class Profile extends StatelessWidget {
                       ),
                     ),
                     builder: (context) {
-                      return const EditProfileSheet();  // Chama a página de edição do perfil
+                      return const EditProfileSheet(); // Chama a página de edição do perfil
                     },
                   );
                 },
