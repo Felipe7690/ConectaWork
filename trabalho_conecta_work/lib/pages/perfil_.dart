@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trabalho_conecta_work/pages/editar perfil.dart';
-import 'package:trabalho_conecta_work/pages/nova_demanda.dart';
-import 'package:trabalho_conecta_work/pages/proposta.dart';
 
-class Profile extends StatelessWidget {
-  const Profile({super.key});
+class Perfil extends StatelessWidget {
+  const Perfil({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +50,26 @@ class Profile extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-
+              ListTile(
+                leading: const Icon(
+                  Icons.dashboard,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
+                title: const Text('Dashboard'),
+                onTap: () {
+                  // Ação do botão de Dashboard
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.account_balance_wallet,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
+                title: const Text('Minha carteira'),
+                onTap: () {
+                  // Ação do botão de Carteira
+                },
+              ),
               ListTile(
                 leading: const Icon(
                   Icons.mail,
@@ -60,11 +77,7 @@ class Profile extends StatelessWidget {
                 ),
                 title: const Text('Propostas'),
                 onTap: () {
-                  // Navega para a página NovaDemanda quando o ícone "mais" é pressionado
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Proposta()),
-                  );
+                  // Ação do botão de Propostas
                 },
               ),
               ListTile(
@@ -75,10 +88,17 @@ class Profile extends StatelessWidget {
                 title: const Text('Editar perfil'),
                 onTap: () {
                   // Exibe o BottomSheet com o formulário de edição
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const EditProfileSheet()),
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                    ),
+                    builder: (context) {
+                      return const EditProfileSheet(); // Chama a página de edição do perfil
+                    },
                   );
                 },
               ),

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:trabalho_conecta_work/pages/nova_demanda.dart'; // Certifique-se de que o caminho esteja correto
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final bool showAddIcon; // Adiciona o parâmetro para controlar a exibição do ícone
+  final bool
+      showAddIcon; // Adiciona o parâmetro para controlar a exibição do ícone
 
   // Construtor que aceita o parâmetro showAddIcon (com valor padrão true)
-  const MyAppBar({super.key, this.showAddIcon = true}); 
+  const MyAppBar({super.key, this.showAddIcon = true});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,8 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
                   // Navega para a página NovaDemanda quando o ícone "mais" é pressionado
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const NovaDemanda()),
+                    MaterialPageRoute(
+                        builder: (context) => const NovaDemanda()),
                   );
                 },
                 icon: const Icon(Icons.add, color: Colors.white),

@@ -170,7 +170,7 @@ class _InicioState extends State<Inicio> {
                                       )
                                     ],
                                     color: const Color.fromARGB(
-                                        255, 255, 255, 255),
+                                        255, 251, 251, 251),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Center(

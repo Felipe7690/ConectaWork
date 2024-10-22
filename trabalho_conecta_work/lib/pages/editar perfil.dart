@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import '../components/my_app_bar.dart';
+
 class EditProfileSheet extends StatelessWidget {
   const EditProfileSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       appBar: MyAppBar(),
-      body: SingleChildScrollView( // Adiciona rolagem
+      body: SingleChildScrollView(
+        // Adiciona rolagem
         child: Padding(
           padding: EdgeInsets.only(
             left: 16.0,
             right: 16.0,
-            bottom: MediaQuery.of(context).viewInsets.bottom, // Ajusta para o teclado
+            bottom: MediaQuery.of(context)
+                .viewInsets
+                .bottom, // Ajusta para o teclado
             top: 16.0,
           ),
           child: Column(
@@ -27,13 +32,14 @@ class EditProfileSheet extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                      color: const Color.fromRGBO(0, 74, 173, 1),
-                      width: 3.0,
+                        color: const Color.fromRGBO(0, 74, 173, 1),
+                        width: 3.0,
                       ),
                     ),
                     child: const CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage('https://avatars.githubusercontent.com/u/116851523?v=4'),
+                      backgroundImage: NetworkImage(
+                          'https://avatars.githubusercontent.com/u/116851523?v=4'),
                     ),
                   ),
                   Container(
@@ -60,17 +66,44 @@ class EditProfileSheet extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              _buildEditableField(label: 'Nome', initialValue: 'Douglas', icon: Icons.edit),
-              _buildEditableField(label: 'Sobrenome', initialValue: 'Cássio', icon: Icons.edit),
-              _buildEditableField(label: 'CPF', initialValue: '000.000.000-00', icon: Icons.edit),
-              _buildEditableField(label: 'Senha', initialValue: '*********', icon: Icons.edit, isPassword: true),
-              _buildEditableField(label: 'Telefone', initialValue: '62 9.8553-3417', icon: Icons.edit),
-              _buildEditableField(label: 'Email', initialValue: 'douglas@gmail.com', icon: Icons.edit),
-              _buildEditableField(label: 'Saldo', initialValue: 'R\$ 25,00', icon: Icons.edit),
-              _buildEditableField(label: 'Data de Nascimento', initialValue: '18/04/2000', icon: Icons.edit),
-              _buildEditableField(label: 'Endereço', initialValue: 'Av Aroeira', icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Nome', initialValue: 'Douglas', icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Sobrenome', initialValue: 'Cássio', icon: Icons.edit),
+              _buildEditableField(
+                  label: 'CPF',
+                  initialValue: '000.000.000-00',
+                  icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Senha',
+                  initialValue: '*********',
+                  icon: Icons.edit,
+                  isPassword: true),
+              _buildEditableField(
+                  label: 'Telefone',
+                  initialValue: '62 9.8553-3417',
+                  icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Email',
+                  initialValue: 'douglas@gmail.com',
+                  icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Saldo', initialValue: 'R\$ 25,00', icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Data de Nascimento',
+                  initialValue: '18/04/2000',
+                  icon: Icons.edit),
+              _buildEditableField(
+                  label: 'Endereço',
+                  initialValue: 'Av Aroeira',
+                  icon: Icons.edit),
               const SizedBox(height: 20),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF004AAD),
+                  shadowColor: Colors.green,
+                  elevation: 3,
+                ),
                 onPressed: () {
                   // Ação do botão salvar
                 },
@@ -117,7 +150,8 @@ class EditProfileSheet extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color.fromRGBO(0, 73, 173, 1)),
+                leading: const Icon(Icons.camera_alt,
+                    color: Color.fromRGBO(0, 73, 173, 1)),
                 title: const Text('Tirar uma foto'),
                 onTap: () {
                   Navigator.pop(context);
@@ -125,7 +159,8 @@ class EditProfileSheet extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo, color: Color.fromRGBO(0, 73, 173, 1)),
+                leading: const Icon(Icons.photo,
+                    color: Color.fromRGBO(0, 73, 173, 1)),
                 title: const Text('Escolher da galeria'),
                 onTap: () {
                   Navigator.pop(context);
