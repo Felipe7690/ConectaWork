@@ -33,16 +33,21 @@ class _PropostaState extends State<Proposta>
       body: Column(
         children: [
           Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Color(0xFF004AAD), // Cor de fundo da barra de abas
+            ),
             child: TabBar(
               controller: _tabController,
               indicator: BoxDecoration(
-                color: Colors.white, // Cor do fundo do indicador
-                borderRadius: BorderRadius.circular(5), // Bordas arredondadas
+                color: Colors.white, // Cor do fundo da aba selecionada
+                borderRadius: BorderRadius.circular(10), // Bordas arredondadas
               ),
-              indicatorPadding: EdgeInsets.symmetric(horizontal: 2),
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicatorPadding: EdgeInsets.symmetric(horizontal: 1),
               labelColor: Color(0xFF004AAD), // Cor do texto da aba selecionada
               unselectedLabelColor:
-                  Colors.white, // Cor do texto das abas não selecionadas
+                  Colors.white, // Cor das abas não selecionadas
               tabs: [
                 Tab(
                   icon: FaIcon(FontAwesomeIcons.arrowUpRightFromSquare),
