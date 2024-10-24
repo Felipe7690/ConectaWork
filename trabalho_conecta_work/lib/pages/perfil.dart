@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trabalho_conecta_work/pages/editar perfil.dart';
-import 'package:trabalho_conecta_work/pages/nova_demanda.dart';
+import 'package:trabalho_conecta_work/pages/editar_perfil.dart';
 import 'package:trabalho_conecta_work/pages/proposta.dart';
+import 'package:trabalho_conecta_work/pages/curriculo.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
@@ -22,7 +22,7 @@ class Profile extends StatelessWidget {
                 color: Colors.grey.withOpacity(0.3),
                 spreadRadius: 1,
                 blurRadius: 3,
-                offset: Offset(4, 5),
+                offset: const Offset(4, 5),
               ),
             ],
           ),
@@ -60,13 +60,29 @@ class Profile extends StatelessWidget {
                 ),
                 title: const Text('Propostas'),
                 onTap: () {
-                  // Navega para a página NovaDemanda quando o ícone "mais" é pressionado
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const Proposta()),
                   );
                 },
               ),
+
+              ListTile(
+                leading: const Icon(
+                  Icons.description,
+                  color: Color.fromRGBO(0, 74, 173, 1),
+                ),
+                title: const Text('Currículo'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Curriculum(),
+                    ),
+                  );
+                },
+              ),
+
               ListTile(
                 leading: const Icon(
                   Icons.settings,
@@ -74,7 +90,6 @@ class Profile extends StatelessWidget {
                 ),
                 title: const Text('Editar perfil'),
                 onTap: () {
-                  // Exibe o BottomSheet com o formulário de edição
                   Navigator.push(
                     context,
                     MaterialPageRoute(
