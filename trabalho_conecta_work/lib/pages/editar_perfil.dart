@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../components/my_app_bar.dart';
 
 class EditProfileSheet extends StatelessWidget {
@@ -7,23 +8,38 @@ class EditProfileSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-      appBar: MyAppBar(),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      appBar: const MyAppBar(showAddIcon: false),
       body: SingleChildScrollView(
-        // Adiciona rolagem
         child: Padding(
           padding: EdgeInsets.only(
             left: 16.0,
             right: 16.0,
             bottom: MediaQuery.of(context)
                 .viewInsets
-                .bottom, // Ajusta para o teclado
+                .bottom,
             top: 16.0,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
+            
             children: [
+              // Botão Voltar Row
+              Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: const FaIcon(FontAwesomeIcons.arrowLeft,
+                  color: const Color.fromRGBO(0, 74, 173, 1),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
@@ -46,14 +62,14 @@ class EditProfileSheet extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: const BoxDecoration(
-                      color: Color.fromRGBO(0, 74, 173, 1), // Fundo azul
+                      color: Color.fromRGBO(0, 74, 173, 1),
                       shape: BoxShape.circle,
                     ),
+                    // Alterar Imagem de Perfil
                     child: IconButton(
                       icon: const Icon(Icons.camera_alt),
-                      color: Colors.white, // Cor do ícone
+                      color: Colors.white,
                       onPressed: () {
-                        // Ação para alterar a imagem do perfil
                         _onEditProfileImage(context);
                       },
                     ),
@@ -61,6 +77,7 @@ class EditProfileSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
+              // Formulário da Edição de Perfil
               const Text(
                 'Editar Perfil',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -71,16 +88,11 @@ class EditProfileSheet extends StatelessWidget {
               _buildEditableField(
                   label: 'Sobrenome', initialValue: 'Cássio', icon: Icons.edit),
               _buildEditableField(
-                  label: 'CPF',
-                  initialValue: '000.000.000-00',
+                  label: 'Breve Descrição',
+                  initialValue: 'Olá, sou Douglas de Rubiataba Goiás.',
                   icon: Icons.edit),
               _buildEditableField(
-                  label: 'Senha',
-                  initialValue: '*********',
-                  icon: Icons.edit,
-                  isPassword: true),
-              _buildEditableField(
-                  label: 'Telefone',
+                  label: 'Número de Telefone',
                   initialValue: '62 9.8553-3417',
                   icon: Icons.edit),
               _buildEditableField(
@@ -88,26 +100,28 @@ class EditProfileSheet extends StatelessWidget {
                   initialValue: 'douglas@gmail.com',
                   icon: Icons.edit),
               _buildEditableField(
-                  label: 'Saldo', initialValue: 'R\$ 25,00', icon: Icons.edit),
-              _buildEditableField(
-                  label: 'Data de Nascimento',
-                  initialValue: '18/04/2000',
-                  icon: Icons.edit),
-              _buildEditableField(
                   label: 'Endereço',
-                  initialValue: 'Av Aroeira',
+                  initialValue: 'Av Aroeira, Q. A, L. 7, Setor Rubiatabinha',
                   icon: Icons.edit),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF004AAD),
-                  shadowColor: Colors.green,
+                  backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
+                  shadowColor: const Color.fromARGB(255, 0, 0, 0),
                   elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Define o raio das bordas aqui
+                  ),
                 ),
                 onPressed: () {
-                  // Ação do botão salvar
+                  Navigator.pop(context);
                 },
-                child: const Text('Salvar Alterações'),
+                child: const Text(
+                  'Salvar Alterações',
+                  style: TextStyle(
+                    color: Color.fromARGB( 255, 255, 255, 255)
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
             ],
@@ -117,20 +131,17 @@ class EditProfileSheet extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para construir os campos de edição
   Widget _buildEditableField({
     required String label,
     required String initialValue,
     required IconData icon,
-    bool isPassword = false, // Se o campo é senha ou não
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         initialValue: initialValue,
-        obscureText: isPassword, // Esconde o texto se for senha
         decoration: InputDecoration(
-          labelText: label, // Adiciona o rótulo ao campo
+          labelText: label,
           suffixIcon: Icon(icon),
           border: const OutlineInputBorder(),
           suffixIconColor: const Color.fromRGBO(0, 74, 173, 1),
@@ -147,6 +158,8 @@ class EditProfileSheet extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16.0),
           height: 150,
+          // Tirar uma foto
+          // Escolher da Galeria
           child: Column(
             children: [
               ListTile(
@@ -155,7 +168,6 @@ class EditProfileSheet extends StatelessWidget {
                 title: const Text('Tirar uma foto'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Ação de tirar uma foto
                 },
               ),
               ListTile(
@@ -164,7 +176,6 @@ class EditProfileSheet extends StatelessWidget {
                 title: const Text('Escolher da galeria'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Ação de escolher da galeria
                 },
               ),
             ],
