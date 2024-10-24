@@ -91,7 +91,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const FaIcon(FontAwesomeIcons.chevronLeft,
+                  icon: const FaIcon(FontAwesomeIcons.arrowLeft,
                       color: Colors.black),
                   onPressed: () {
                     Navigator.pop(context);
@@ -106,7 +106,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
                 'Adicionar nova demanda específica',
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
                   color: Color.fromRGBO(0, 0, 0, 1),
                 ),
                 textAlign: TextAlign.center,

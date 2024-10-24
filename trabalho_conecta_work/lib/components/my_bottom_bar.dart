@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trabalho_conecta_work/pages/inicio.dart';
 import 'package:trabalho_conecta_work/pages/perfil.dart';
-import 'package:trabalho_conecta_work/pages/perfil_.dart';
 import 'package:trabalho_conecta_work/pages/pesquisar.dart';
 
 class MyBottomBar extends StatelessWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:trabalho_conecta_work/pages/demanda.dart';
 
 class Pesquisar extends StatefulWidget {
   @override
@@ -108,7 +109,14 @@ class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
                   ),
                   itemHeight: 50,
                   onSuggestionTap: (SearchFieldListItem<String> item) {
-                    print('Categoria selecionada: ${item.item}');
+                    // Navega para a página de Demanda e passa a categoria selecionada
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Demanda(
+                            categoria: item.item ?? 'Categoria Desconhecida'),
+                      ),
+                    );
                   },
                   onSearchTextChanged: (query) => _onSearchChanged(query),
                 ),
@@ -123,7 +131,6 @@ class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
                   'Escolha a categoria de serviço desejado',
                   style: TextStyle(
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
                     color: Color.fromRGBO(0, 0, 0, 1),
                   ),
                   textAlign: TextAlign.center,
@@ -146,24 +153,36 @@ class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
                 ),
                 itemCount: categoriasExibidas,
                 itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        iconesCategorias[index],
-                        size: 40,
-                        color: Color.fromRGBO(0, 74, 173, 1),
-                      ),
-                      SizedBox(height: 7),
-                      Text(
-                        categorias[index],
-                        style: TextStyle(
-                          fontSize: 15,
+                  return GestureDetector(
+                    onTap: () {
+                      // Navega para a página de Demanda e passa a categoria selecionada
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              Demanda(categoria: categorias[index]),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          iconesCategorias[index],
+                          size: 40,
                           color: Color.fromRGBO(0, 74, 173, 1),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        SizedBox(height: 7),
+                        Text(
+                          categorias[index],
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Color.fromRGBO(0, 74, 173, 1),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),

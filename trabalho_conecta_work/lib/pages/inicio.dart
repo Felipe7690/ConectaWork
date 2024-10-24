@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:trabalho_conecta_work/pages/demanda.dart'; // Importe a página Demanda
 
 class Inicio extends StatefulWidget {
   const Inicio({super.key});
@@ -12,8 +13,18 @@ class _InicioState extends State<Inicio> {
   // Lista de banners (imagens)
   final List<String> banners = [
     'assets/imagens/banner1.jpg',
-    'assets/imagens/banner4.jpg',
     'assets/imagens/banner3.jpg',
+  ];
+
+  final List<String> categorias = [
+    'Eletricista',
+    'Encanador',
+    'Pintor',
+    'Jardinagem',
+    'Faxina',
+    'Reparos Gerais',
+    'Montagem',
+    'Limpeza Pós-Obra',
   ];
 
   // Lista de serviços populares
@@ -65,7 +76,6 @@ class _InicioState extends State<Inicio> {
               SafeArea(
                 top: false, // Mantém o SafeArea se necessário
                 child: Container(
-                  decoration: BoxDecoration(),
                   padding: const EdgeInsets.only(
                     top: 20,
                     bottom: 40, // Mantém o espaçamento inferior
@@ -106,8 +116,8 @@ class _InicioState extends State<Inicio> {
                         children: List.generate(banners.length, (index) {
                           return Container(
                             margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentIndex == index ? 12 : 8,
-                            height: _currentIndex == index ? 12 : 8,
+                            width: _currentIndex == index ? 8 : 6,
+                            height: _currentIndex == index ? 8 : 6,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _currentIndex == index
@@ -125,21 +135,25 @@ class _InicioState extends State<Inicio> {
 
               // Seção "Serviços Populares" com fundo branco
               Container(
-                decoration: BoxDecoration(
-                  color: const Color.fromRGBO(255, 255, 255, 1),
+                decoration: const BoxDecoration(
+                  color: Color.fromRGBO(255, 255, 255, 1),
                   borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30)),
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
                 ),
-                padding: const EdgeInsets.all(25),
+                padding: const EdgeInsets.only(top: 20, bottom: 30),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Serviços Populares',
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: Color.fromARGB(255, 0, 0, 0), // Cor do texto
+                    Container(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: const Text(
+                        'Serviços Populares',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Color.fromARGB(255, 0, 0, 0), // Cor do texto
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -151,48 +165,60 @@ class _InicioState extends State<Inicio> {
                             .length, // Quantidade de serviços populares
                         itemBuilder: (context, index) {
                           final servico = servicosPopulares[index];
-                          return Container(
-                            width: 120,
-                            margin: const EdgeInsets.only(right: 2),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 80,
-                                  height: 90,
-                                  decoration: BoxDecoration(
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        spreadRadius: 0,
-                                        blurRadius: 2,
-                                        offset: Offset(4, 4),
-                                      )
-                                    ],
-                                    color: const Color.fromARGB(
-                                        255, 251, 251, 251),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Center(
-                                    child: FaIcon(
-                                      servico['icone'],
-                                      size: 40,
-                                      color: const Color(
-                                          0xFF004AAD), // Cor do ícone
+                          return GestureDetector(
+                            onTap: () {
+                              // Navega para a página de Demanda e passa a categoria selecionada
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Demanda(categoria: categorias[index]),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 120,
+                              margin: const EdgeInsets.only(right: 2),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 80,
+                                    height: 90,
+                                    decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.3),
+                                          spreadRadius: 0,
+                                          blurRadius: 2,
+                                          offset: const Offset(4, 4),
+                                        )
+                                      ],
+                                      color: const Color.fromARGB(
+                                          255, 251, 251, 251),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Center(
+                                      child: FaIcon(
+                                        servico['icone'],
+                                        size: 40,
+                                        color: const Color(
+                                            0xFF004AAD), // Cor do ícone
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  servico['nome'],
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    color: Color.fromARGB(
-                                        255, 0, 0, 0), // Cor do nome do serviço
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    servico['nome'],
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: Color.fromARGB(255, 0, 0,
+                                          0), // Cor do nome do serviço
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -204,8 +230,8 @@ class _InicioState extends State<Inicio> {
 
               // Outras seções da página
               Container(
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 255, 255),
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 255, 255, 255),
                 ),
                 padding:
                     const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
@@ -215,7 +241,7 @@ class _InicioState extends State<Inicio> {
                     const Text(
                       'Demandas Próximas',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         color: Color.fromARGB(255, 0, 0, 0),
                       ),
                     ),
@@ -261,15 +287,15 @@ class _InicioState extends State<Inicio> {
                                 demanda['localizacao'],
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.grey,
+                                  color: Colors.black54,
                                 ),
                               ),
                               const SizedBox(height: 5),
                               Text(
                                 demanda['distancia'],
                                 style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black,
+                                  fontSize: 16,
+                                  color: Colors.black54,
                                 ),
                               ),
                             ],

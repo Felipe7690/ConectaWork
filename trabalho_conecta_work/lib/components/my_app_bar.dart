@@ -15,7 +15,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Image.asset(
         "assets/imagens/logo_b.png",
         height: 40, // Defina a altura da imagem
-        fit: BoxFit.contain,
+        fit: BoxFit.scaleDown,
       ),
       backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
       elevation: 0,
