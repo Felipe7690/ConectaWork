@@ -9,7 +9,7 @@ class Demanda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 251, 251, 251),
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return [
@@ -65,58 +65,122 @@ class Demanda extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Texto que fica após o título da demanda
-              Center(
+              Container(
+                decoration:
+                    BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+                width: double.infinity,
                 child: Padding(
-                  padding: const EdgeInsets.all(25),
+                  padding: const EdgeInsets.only(top: 25, bottom: 50, left: 5),
                   child: Text(
-                    'Essas são as demandas próximas de você',
+                    'Demandas próximas de você',
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: 18,
                     ),
-                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+
+              // Localização do usuário
+              Container(
+                decoration:
+                    BoxDecoration(color: Color.fromARGB(255, 255, 255, 255)),
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 5, bottom: 25, left: 5),
+                  child: Text(
+                    'Localização: Cidade A, Bairro B',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
                   ),
                 ),
               ),
 
               // Exibição das demandas
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Wrap(
-                  spacing: 10, // Espaçamento horizontal
-                  runSpacing: 20, // Espaçamento vertical
-                  children: List.generate(6, (index) {
-                    return SizedBox(
-                      width: (MediaQuery.of(context).size.width - 40) / 2,
-                      child: Column(
-                        children: [
-                          // Imagem para cada demanda
-                          Container(
-                            height: 150, // Altura fixa
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.grey[300],
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Wrap(
+                    spacing: 5, // Espaçamento horizontal
+                    runSpacing: 5, // Espaçamento vertical
+                    children: List.generate(6, (index) {
+                      return SizedBox(
+                        width: (MediaQuery.of(context).size.width - 25) / 2,
+                        child: Column(
+                          children: [
+                            // Imagem e Avatar para cada demanda
+                            Container(
+                              height:
+                                  300, // Altura fixa do container da demanda
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: Color.fromARGB(255, 255, 255, 255),
+                              ),
+                              child: Column(
+                                children: [
+                                  // Avatar alinhado à esquerda
+                                  Padding(
+                                    padding: EdgeInsets.all(3),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius:
+                                              15, // Tamanho reduzido do avatar
+                                          backgroundImage: NetworkImage(
+                                              'https://avatars.githubusercontent.com/u/116851523?v=4'),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                          child: Text(
+                                            "Douglas Cássio",
+                                            style: TextStyle(
+                                              color: Color(0xFF004AAD),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Imagem principal da demanda
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 5),
+                                    child: Image.asset(
+                                      "assets/imagens/eletrico.jpg",
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Icon(Icons.error);
+                                      },
+                                    ),
+                                  ),
+
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 160,
+                                        padding: EdgeInsets.all(5),
+                                        child: Text(
+                                          "Contratamos eletricista com experiência para serviços de manutenção e instalação elétrica.",
+                                          style: TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
+                                              fontSize: 16),
+                                          maxLines: 3, // Limitar a 3 linhas
+                                          overflow: TextOverflow
+                                              .ellipsis, // Adicionar reticências
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: Image.asset(
-                              "assets/imagens/eletrico.jpg", // Verifique o caminho da imagem
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.error);
-                              },
-                            ),
-                          ),
-                          // Texto abaixo da imagem
-                          Padding(
-                            padding: const EdgeInsets.only(left: 2, top: 8),
-                            child: Text(
-                              "Demanda ${index + 1}",
-                              textAlign: TextAlign.left,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ),
             ],
