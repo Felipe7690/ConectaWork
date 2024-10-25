@@ -15,30 +15,28 @@ class EditProfileSheet extends StatelessWidget {
           padding: EdgeInsets.only(
             left: 16.0,
             right: 16.0,
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
             top: 16.0,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
-            
             children: [
               // Botão Voltar Row
               Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const FaIcon(FontAwesomeIcons.arrowLeft,
-                  color: const Color.fromRGBO(0, 74, 173, 1),
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const FaIcon(
+                      FontAwesomeIcons.arrowLeft,
+                      color: Color.fromRGBO(0, 74, 173, 1),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
+                ],
+              ),
 
               Stack(
                 alignment: Alignment.bottomRight,
@@ -77,51 +75,83 @@ class EditProfileSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
+
               // Formulário da Edição de Perfil
               const Text(
                 'Editar Perfil',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              _buildEditableField(
-                  label: 'Nome', initialValue: 'Douglas', icon: Icons.edit),
-              _buildEditableField(
-                  label: 'Sobrenome', initialValue: 'Cássio', icon: Icons.edit),
-              _buildEditableField(
-                  label: 'Breve Descrição',
-                  initialValue: 'Olá, sou Douglas de Rubiataba Goiás.',
-                  icon: Icons.edit),
-              _buildEditableField(
-                  label: 'Número de Telefone',
-                  initialValue: '62 9.8553-3417',
-                  icon: Icons.edit),
-              _buildEditableField(
-                  label: 'Email',
-                  initialValue: 'douglas@gmail.com',
-                  icon: Icons.edit),
-              _buildEditableField(
-                  label: 'Endereço',
-                  initialValue: 'Av Aroeira, Q. A, L. 7, Setor Rubiatabinha',
-                  icon: Icons.edit),
+
+              // Campos de Perfil com ícones de edição
+              _buildEditableFieldWithEdit(
+                label: 'Nome',
+                initialValue: 'Douglas',
+                context: context,
+              ),
+              _buildEditableFieldWithEdit(
+                label: 'Sobrenome',
+                initialValue: 'Cássio',
+                context: context,
+              ),
+              _buildEditableFieldWithEdit(
+                label: 'Breve Descrição',
+                initialValue: 'Olá, sou Douglas de Rubiataba Goiás.',
+                context: context,
+              ),
+              _buildEditableFieldWithEdit(
+                label: 'Número de Telefone',
+                initialValue: '62 9.8553-3417',
+                context: context,
+              ),
+              _buildEditableFieldWithEdit(
+                label: 'Email',
+                initialValue: 'douglas@gmail.com',
+                context: context,
+              ),
+              _buildEditableFieldWithEdit(
+                label: 'Endereço',
+                initialValue: 'Av Aroeira, Q. A, L. 7, Setor Rubiatabinha',
+                context: context,
+              ),
+
               const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
-                  shadowColor: const Color.fromARGB(255, 0, 0, 0),
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20), // Define o raio das bordas aqui
+
+              // Botões Cancelar e Salvar Alterações lado a lado
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey, // Cor para o botão Cancelar
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Cancelar',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  'Salvar Alterações',
-                  style: TextStyle(
-                    color: Color.fromARGB( 255, 255, 255, 255)
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Salvar Alterações',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 10),
             ],
@@ -131,22 +161,69 @@ class EditProfileSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildEditableField({
+  // Função para construir os campos com ícones de edição
+  Widget _buildEditableFieldWithEdit({
     required String label,
     required String initialValue,
-    required IconData icon,
+    required BuildContext context,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        initialValue: initialValue,
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: Icon(icon),
-          border: const OutlineInputBorder(),
-          suffixIconColor: const Color.fromRGBO(0, 74, 173, 1),
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              '$label: $initialValue',
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, color: Color.fromRGBO(0, 74, 173, 1)),
+            onPressed: () {
+              _editProfileFieldDialog(context, label, initialValue);
+            },
+          ),
+        ],
       ),
+    );
+  }
+
+  // Função que cria o modal para editar campos de perfil
+  void _editProfileFieldDialog(
+      BuildContext context, String label, String initialValue) {
+    final TextEditingController controller =
+        TextEditingController(text: initialValue);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Editar $label'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: label,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Aqui você pode adicionar a lógica para salvar a alteração
+                Navigator.of(context).pop();
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -158,8 +235,6 @@ class EditProfileSheet extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16.0),
           height: 150,
-          // Tirar uma foto
-          // Escolher da Galeria
           child: Column(
             children: [
               ListTile(
