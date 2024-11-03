@@ -14,8 +14,8 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false, // Remove o botão de voltar automático
       title: Image.asset(
         "assets/imagens/logo_b.png",
-        height: 40, // Defina a altura da imagem
-        fit: BoxFit.scaleDown,
+        height: 60,
+        width: 60, // Defina a altura da imagem
       ),
       backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
       elevation: 0,
