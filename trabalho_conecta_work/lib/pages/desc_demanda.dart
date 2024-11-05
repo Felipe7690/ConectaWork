@@ -19,7 +19,11 @@ final List<String> banners = [
 int _currentIndex = 0;
 
 class _DescDemandaState extends State<DescDemanda> {
-  final TextEditingController _valorController = TextEditingController();
+  final MoneyMaskedTextController _valorController = MoneyMaskedTextController(
+    decimalSeparator: ',',
+    thousandSeparator: '.',
+    leftSymbol: 'R\$ ',
+  );
   final TextEditingController _dataEntregaController = TextEditingController();
   final MaskedTextController _whatsappController =
       MaskedTextController(mask: '(00) 0.0000-0000');
@@ -287,10 +291,6 @@ class _DescDemandaState extends State<DescDemanda> {
                   ),
                   cursorColor: Color(0xFF004AAD),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,2}')),
-                  ],
                 ),
                 TextField(
                   controller: _dataEntregaController,
