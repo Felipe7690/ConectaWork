@@ -53,44 +53,146 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Cadastro'),
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: InputDecoration(labelText: 'Nome Completo'),
+      backgroundColor: Color(0xFF004BA8),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 30), 
+                    Image.asset(
+                      'assets/imagens/logo_b.png',
+                      height: 100,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Cadastrar',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6.0,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              labelText: 'Nome Completo',
+                              prefixIcon: Icon(Icons.person),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          TextField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'E-mail',
+                              prefixIcon: Icon(Icons.email),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          SizedBox(height: 15),
+                          TextField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              labelText: 'Senha',
+                              prefixIcon: Icon(Icons.lock),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            obscureText: true,
+                          ),
+                          SizedBox(height: 15),
+                          TextField(
+                            controller: _confirmPasswordController,
+                            decoration: InputDecoration(
+                              labelText: 'Confirmar Senha',
+                              prefixIcon: Icon(Icons.lock),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            obscureText: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 25),
+                    ElevatedButton(
+                      onPressed: _registerUser,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 100, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: Text(
+                        'Cadastrar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Fazer Login',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+                 Positioned(
+                 top: 0,
+                  left: 16,
+                  child: IconButton(
+                  icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 255, 255)),
+                  onPressed: () {
+                 Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
           ),
-          TextField(
-            controller: _emailController,
-            decoration: InputDecoration(labelText: 'E-mail'),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          TextField(
-            controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Senha'),
-            obscureText: true,
-          ),
-          TextField(
-            controller: _confirmPasswordController,
-            decoration: InputDecoration(labelText: 'Confirmar Senha'),
-            obscureText: true,
-          ),
-          ElevatedButton(
-            onPressed: _registerUser,
-            child: Text('Cadastrar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
-            child: Text('Fazer Login'),
-          ),
-        ],
+        ),
       ),
     );
   }
