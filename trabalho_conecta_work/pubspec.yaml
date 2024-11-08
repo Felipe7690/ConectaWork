@@ -14,7 +14,8 @@ dependencies:
   flutter_floating_bottom_bar: ^1.2.0 # Use underscores em vez de hífens
   searchfield: ^1.1.6
   font_awesome_flutter: ^10.1.0
-  image_picker: ^0.8.5+3
+  image_picker: ^1.1.2
+  parse_server_sdk_flutter: ^8.0.0
   file_picker: ^5.2.3
   google_maps_flutter: ^2.1.1
   geolocator: ^9.0.0
@@ -26,16 +27,17 @@ dependencies:
   mask_text_input_formatter: ^2.0.0
   intl_phone_number_input: ^0.7.0
   intl: ^0.17.0
-  parse_server_sdk_flutter: ^8.0.0
-  flutter_google_places: ^0.3.0
-  google_maps_webservice: ^0.0.19
-  google_api_headers: ^1.6.0
+  dropdown_button2: ^2.3.9
+  parse_server_sdk: ^6.4.0
+  mime: ^1.0.6
+  path: ^1.9.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  carousel_slider: ^4.2.1
+  carousel_slider: ^4.2.0
 
 flutter:
   uses-material-design: true
