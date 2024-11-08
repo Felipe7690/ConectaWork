@@ -2,9 +2,59 @@ import 'package:flutter/material.dart';
 import 'package:trabalho_conecta_work/pages/editar_perfil.dart';
 import 'package:trabalho_conecta_work/pages/proposta.dart';
 import 'package:trabalho_conecta_work/pages/curriculo.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-class Profile extends StatelessWidget {
+class Profile extends StatefulWidget {
   const Profile({super.key});
+
+  @override
+  _ProfileState createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+  @override
+  void initState() {
+    super.initState();
+    checkUserCompletion();
+  }
+
+  Future<void> checkUserCompletion() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser != null) {
+      final isComplete = currentUser.get('completar_cadastro') ?? false;
+
+      if (!isComplete) {
+        // Exibe o popup de completar cadastro
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Cadastro Incompleto'),
+                content: const Text(
+                    'Para acessar todas as funcionalidades, complete seu cadastro.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushNamed(context, '/completar_cadastro');
+                    },
+                    child: const Text('Completar Cadastro'),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +79,6 @@ class Profile extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Container CircleAvatar
               Container(
                 padding: const EdgeInsets.all(0),
                 decoration: BoxDecoration(
@@ -45,14 +94,12 @@ class Profile extends StatelessWidget {
                       'https://avatars.githubusercontent.com/u/116851523?v=4'),
                 ),
               ),
-
               const SizedBox(height: 10),
               const Text(
                 'Olá, Douglas Cássio',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-
               ListTile(
                 leading: const Icon(
                   Icons.mail,
@@ -66,7 +113,6 @@ class Profile extends StatelessWidget {
                   );
                 },
               ),
-
               ListTile(
                 leading: const Icon(
                   Icons.description,
@@ -82,7 +128,6 @@ class Profile extends StatelessWidget {
                   );
                 },
               ),
-
               ListTile(
                 leading: const Icon(
                   Icons.settings,
