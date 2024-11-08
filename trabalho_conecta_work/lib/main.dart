@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:trabalho_conecta_work/pages/completar_cadastro.dart';
+import 'package:trabalho_conecta_work/pages/home.dart';
+import 'package:trabalho_conecta_work/pages/tela_cadastrar.dart';
+import 'package:trabalho_conecta_work/pages/tela_logar.dart';
 import 'package:trabalho_conecta_work/pages/tela_logar_inicio.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
@@ -22,9 +26,33 @@ void main() async {
 class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      initialRoute: '/loginInitial',
+      routes: {
+        '/loginInitial': (context) => LoginInitialScreen(),
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/home': (context) => HomePage(),
+        '/completar_cadastro': (context) => FutureBuilder<ParseUser?>(
+          future: _getCurrentUser(), // Verifica se o usuário está logado
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasData && snapshot.data != null) {
+              return CompleteProfileScreen(user: snapshot.data!); // Passa o usuário logado
+            } else {
+              return LoginScreen();
+            }
+          },
+        ),
+      },
       debugShowCheckedModeBanner: false,
-      home: LoginInitialScreen(), //chama a a tela inicial de Login/Cadastro
     );
+  }
+
+  // Método para verificar se o usuário está logado
+  Future<ParseUser?> _getCurrentUser() async {
+    ParseUser? user = await ParseUser.currentUser();
+    return user; // Retorna o usuário logado
   }
 }
