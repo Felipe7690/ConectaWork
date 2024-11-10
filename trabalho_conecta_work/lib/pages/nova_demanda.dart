@@ -42,8 +42,8 @@ class _NovaDemandaState extends State<NovaDemanda> {
       return;
     }
 
-    // Verificar se o usuário está autenticado
-    ParseUser? currentUser = await ParseUser.currentUser();
+    // Obter o usuário logado
+    ParseUser? currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Usuário não autenticado')),
@@ -51,22 +51,23 @@ class _NovaDemandaState extends State<NovaDemanda> {
       return;
     }
 
-    // Criação de objeto Parse
+    // Criação de objeto Parse para a demanda
     final demanda = ParseObject('Demanda')
       ..set('titulo', _titleController.text)
       ..set('descricao', _descriptionController.text)
       ..set('status', 'novo')
       ..set('localizacao', selectedValue)
-      ..set('valor', double.parse(_valueController.text.replaceAll(',', '.')));
+      ..set('valor', double.parse(_valueController.text.replaceAll(',', '.')))
+      ..set('usuario_pointer',
+          currentUser); // Adiciona o ponteiro para o usuário logado
 
     // Salvando imagens e pegando os links
     if (_imageFiles != null && _imageFiles!.isNotEmpty) {
-      final List<ParseFile> parseFiles = []; // Para armazenar os arquivos Parse
+      final List<ParseFile> parseFiles = []; // Lista para armazenar os arquivos
       for (var image in _imageFiles!) {
-        // Criando ParseFile a partir da imagem
         ParseFile parseImage = ParseFile(File(image.path));
 
-        // Definindo a ACL para permitir leitura e escrita
+        // Definindo permissões públicas (se necessário)
         ParseACL acl = ParseACL();
         acl.setPublicWriteAccess(allowed: true);
         acl.setPublicReadAccess(allowed: true);
@@ -77,7 +78,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
 
         // Verificando se o arquivo foi salvo com sucesso
         if (saveResponse.success) {
-          parseFiles.add(parseImage);
+          parseFiles.add(parseImage); // Adiciona o arquivo ao array
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -86,9 +87,9 @@ class _NovaDemandaState extends State<NovaDemanda> {
           );
         }
       }
-
-      // Associando os arquivos de imagem ao objeto demanda
-      demanda.set('imagem', parseFiles);
+      // Salvando o array de arquivos no campo 'imagem'
+      demanda.set('imagem',
+          parseFiles); // Envia o array de arquivos para o campo imagem
     }
 
     // Salvando a demanda no banco de dados
@@ -253,23 +254,15 @@ class _NovaDemandaState extends State<NovaDemanda> {
                       width: MediaQuery.of(context).size.width * 0.8,
                       padding: const EdgeInsets.all(12.0),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.black26),
-                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.withOpacity(0.5)),
                       ),
                     ),
-                    iconStyleData: const IconStyleData(
-                      icon: Icon(Icons.arrow_forward_ios_outlined),
-                      iconSize: 16,
-                      iconEnabledColor: Color.fromRGBO(0, 0, 0, 1),
-                      iconDisabledColor: Colors.grey,
-                    ),
                     dropdownStyleData: DropdownStyleData(
-                      maxHeight: 200,
-                      width: MediaQuery.of(context).size.width * 0.8,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -278,27 +271,34 @@ class _NovaDemandaState extends State<NovaDemanda> {
             ),
             _buildEditableField(
                 _descriptionPlaceholder, _descriptionController),
+            const SizedBox(height: 20),
             GestureDetector(
               onTap: _selectImages,
               child: Container(
-                height: 80,
-                width: MediaQuery.of(context).size.width * 0.8,
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12.0),
                   border: Border.all(color: Colors.grey.withOpacity(0.5)),
                 ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.camera_alt_outlined, color: Colors.black54),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Clique aqui para adicionar imagem',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
-                      ),
-                    ),
+                child: Column(
+                  children: [
+                    const Text('Selecionar imagens'),
+                    const SizedBox(height: 8),
+                    _imageFiles != null
+                        ? Wrap(
+                            children: _imageFiles!
+                                .map((file) => Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Image.file(
+                                        File(file.path),
+                                        height: 50,
+                                        width: 50,
+                                      ),
+                                    ))
+                                .toList(),
+                          )
+                        : const Text('Nenhuma imagem selecionada'),
                   ],
                 ),
               ),
@@ -306,6 +306,14 @@ class _NovaDemandaState extends State<NovaDemanda> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: criarDemanda,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromRGBO(0, 123, 255, 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                minimumSize: Size(MediaQuery.of(context).size.width * 0.8, 0),
+              ),
               child: const Text('Criar Demanda'),
             ),
           ],
