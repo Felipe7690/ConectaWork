@@ -34,17 +34,18 @@ class MainApp extends StatelessWidget {
         '/register': (context) => RegisterScreen(),
         '/home': (context) => HomePage(),
         '/completar_cadastro': (context) => FutureBuilder<ParseUser?>(
-          future: _getCurrentUser(), // Verifica se o usuário está logado
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            } else if (snapshot.hasData && snapshot.data != null) {
-              return CompleteProfileScreen(user: snapshot.data!); // Passa o usuário logado
-            } else {
-              return LoginScreen();
-            }
-          },
-        ),
+              future: _getCurrentUser(), // Verifica se o usuário está logado
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasData && snapshot.data != null) {
+                  return CompleteProfileScreen(
+                      user: snapshot.data!); // Passa o usuário logado
+                } else {
+                  return LoginScreen();
+                }
+              },
+            ),
       },
       debugShowCheckedModeBanner: false,
     );
