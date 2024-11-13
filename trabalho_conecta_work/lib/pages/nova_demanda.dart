@@ -5,6 +5,7 @@ import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:trabalho_conecta_work/components/my_app_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:google_place/google_place.dart';
 
 class NovaDemanda extends StatefulWidget {
   const NovaDemanda({super.key});
@@ -17,32 +18,57 @@ class _NovaDemandaState extends State<NovaDemanda> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  List<XFile>? _imageFiles;
+  final TextEditingController _locationController = TextEditingController();
 
-  final String _titlePlaceholder = 'Selecione título da demanda';
+  List<XFile>? _imageFiles;
+  List<ParseObject> _categorias = [];
+  String? selectedValue;
+  String? selectedCategoryId;
+  String? selectedLocation;
+  double? selectedLatitude;
+  double? selectedLongitude;
+
+  final String _titlePlaceholder = 'Título da demanda';
   final String _valuePlaceholder = 'Valor';
   final String _descriptionPlaceholder = 'Descrição do serviço';
+  final String _locationPlaceholder = 'Digite o local';
 
-  final List<String> items = [
-    'Rubiataba',
-    'Ceres',
-  ];
+  GooglePlace? _googlePlace;
+  List<AutocompletePrediction> _placePredictions = [];
 
-  String? selectedValue;
+  // Fetch categories from the database
+  Future<void> _fetchCategorias() async {
+    final query = QueryBuilder<ParseObject>(ParseObject('Categoria'));
+    final response = await query.query();
 
-  // Função para criar e salvar a demanda no banco de dados
+    if (response.success) {
+      setState(() {
+        _categorias = response.results!.cast<ParseObject>();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Erro ao buscar categorias: ${response.error?.message}')),
+      );
+    }
+  }
+
+  // Create a new demand
   Future<void> criarDemanda() async {
     if (_titleController.text.isEmpty ||
         _valueController.text.isEmpty ||
-        selectedValue == null ||
-        _descriptionController.text.isEmpty) {
+        selectedCategoryId == null ||
+        _descriptionController.text.isEmpty ||
+        _locationController.text.isEmpty ||
+        selectedLatitude == null ||
+        selectedLongitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Preencha todos os campos')),
       );
       return;
     }
 
-    // Obter o usuário logado
     ParseUser? currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,34 +77,33 @@ class _NovaDemandaState extends State<NovaDemanda> {
       return;
     }
 
-    // Criação de objeto Parse para a demanda
     final demanda = ParseObject('Demanda')
       ..set('titulo', _titleController.text)
       ..set('descricao', _descriptionController.text)
       ..set('status', 'novo')
-      ..set('localizacao', selectedValue)
       ..set('valor', double.parse(_valueController.text.replaceAll(',', '.')))
-      ..set('usuario_pointer',
-          currentUser); // Adiciona o ponteiro para o usuário logado
+      ..set('localizacao', _locationController.text)
+      ..set('usuario_pointer', currentUser)
+      ..set('categoria_pointer',
+          ParseObject('Categoria')..set('objectId', selectedCategoryId));
 
-    // Salvando imagens e pegando os links
+    // Use apenas 'coordenadas' como GeoPoint para armazenar a localização
+    final geoPoint = ParseGeoPoint(
+        latitude: selectedLatitude!, longitude: selectedLongitude!);
+    demanda.set('coordenada', geoPoint);
+
     if (_imageFiles != null && _imageFiles!.isNotEmpty) {
-      final List<ParseFile> parseFiles = []; // Lista para armazenar os arquivos
+      final List<ParseFile> parseFiles = [];
       for (var image in _imageFiles!) {
         ParseFile parseImage = ParseFile(File(image.path));
-
-        // Definindo permissões públicas (se necessário)
         ParseACL acl = ParseACL();
         acl.setPublicWriteAccess(allowed: true);
         acl.setPublicReadAccess(allowed: true);
         parseImage.setACL(acl);
 
-        // Salvando o ParseFile no servidor (fazendo o upload)
         final saveResponse = await parseImage.save();
-
-        // Verificando se o arquivo foi salvo com sucesso
         if (saveResponse.success) {
-          parseFiles.add(parseImage); // Adiciona o arquivo ao array
+          parseFiles.add(parseImage);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -87,12 +112,9 @@ class _NovaDemandaState extends State<NovaDemanda> {
           );
         }
       }
-      // Salvando o array de arquivos no campo 'imagem'
-      demanda.set('imagem',
-          parseFiles); // Envia o array de arquivos para o campo imagem
+      demanda.set('imagem', parseFiles);
     }
 
-    // Salvando a demanda no banco de dados
     final response = await demanda.save();
 
     if (response.success) {
@@ -106,6 +128,32 @@ class _NovaDemandaState extends State<NovaDemanda> {
     }
   }
 
+  // Fetch place suggestions based on user input
+  Future<void> _fetchPlaceSuggestions(String query) async {
+    if (_googlePlace != null) {
+      final response = await _googlePlace!.autocomplete.get(query);
+
+      if (response != null && response.predictions != null) {
+        setState(() {
+          _placePredictions = response.predictions!;
+        });
+      } else {
+        setState(() {
+          _placePredictions = [];
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _googlePlace = GooglePlace(
+        'AIzaSyAqEpiuZYAYvCKRVeXydjsRVo1KL6nBPRw'); // Replace with your API key
+    _fetchCategorias();
+  }
+
+  // Build editable field for input
   Widget _buildEditableField(
       String placeholder, TextEditingController controller,
       {bool isNumeric = false}) {
@@ -131,26 +179,8 @@ class _NovaDemandaState extends State<NovaDemanda> {
               ? TextInputType.numberWithOptions(decimal: true)
               : TextInputType.text,
           onChanged: (value) {
-            if (isNumeric) {
-              controller.value = TextEditingValue(
-                text: value.replaceAll(RegExp(r'[^\d]'), ''),
-                selection: TextSelection.collapsed(offset: value.length),
-              );
-            }
-          },
-          onEditingComplete: () {
-            if (isNumeric) {
-              String text = controller.text;
-              if (text.isNotEmpty) {
-                double parsedValue = double.parse(text) / 100;
-                String formattedValue =
-                    parsedValue.toStringAsFixed(2).replaceAll('.', ',');
-                controller.value = TextEditingValue(
-                  text: formattedValue,
-                  selection:
-                      TextSelection.collapsed(offset: formattedValue.length),
-                );
-              }
+            if (placeholder == _locationPlaceholder) {
+              _fetchPlaceSuggestions(value);
             }
           },
         ),
@@ -158,7 +188,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
     );
   }
 
-  // Função para selecionar imagens
+  // Select images from the device
   Future<void> _selectImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? selectedImages = await picker.pickMultiImage();
@@ -167,6 +197,64 @@ class _NovaDemandaState extends State<NovaDemanda> {
         _imageFiles = selectedImages;
       });
     }
+  }
+
+  // Show image preview
+  Widget _buildImagePreview() {
+    if (_imageFiles == null || _imageFiles!.isEmpty) {
+      return Container();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
+      child: Wrap(
+        spacing: 8.0,
+        children: _imageFiles!.map((image) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              File(image.path),
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // Show location suggestions based on user input
+  Widget _buildLocationSuggestions() {
+    if (_placePredictions.isEmpty) {
+      return Container();
+    }
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: _placePredictions.length,
+      itemBuilder: (context, index) {
+        final prediction = _placePredictions[index];
+        return ListTile(
+          title: Text(prediction.description ?? ''),
+          onTap: () async {
+            setState(() {
+              selectedLocation = prediction.description;
+              _locationController.text = prediction.description ?? '';
+            });
+
+            final placeDetails =
+                await _googlePlace!.details.get(prediction.placeId!);
+
+            if (placeDetails != null && placeDetails.result != null) {
+              setState(() {
+                selectedLatitude = placeDetails.result!.geometry!.location!.lat;
+                selectedLongitude =
+                    placeDetails.result!.geometry!.location!.lng;
+              });
+            }
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -183,137 +271,72 @@ class _NovaDemandaState extends State<NovaDemanda> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const FaIcon(FontAwesomeIcons.chevronLeft,
-                      color: Colors.black),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  icon: const FaIcon(FontAwesomeIcons.chevronLeft),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                const SizedBox(width: 4),
               ],
             ),
-            const SizedBox(height: 4),
-            const Center(
-              child: Text(
-                'Adicionar nova demanda específica',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(0, 0, 0, 1),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _buildEditableField(_titlePlaceholder, _titleController),
             _buildEditableField(_valuePlaceholder, _valueController,
                 isNumeric: true),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20.0),
-              child: Center(
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton2<String>(
-                    isExpanded: true,
-                    hint: const Row(
-                      children: [
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            'Cidade',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    items: items
-                        .map((String item) => DropdownMenuItem<String>(
-                              value: item,
-                              child: Text(
-                                item,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ))
-                        .toList(),
-                    value: selectedValue,
-                    onChanged: (String? value) {
-                      setState(() {
-                        selectedValue = value;
-                      });
-                    },
-                    buttonStyleData: ButtonStyleData(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.withOpacity(0.5)),
-                      ),
-                    ),
-                    dropdownStyleData: DropdownStyleData(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: Colors.white,
-                      ),
-                    ),
+            const SizedBox(height: 12),
+            Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: DropdownButton2<String>(
+                value: selectedCategoryId,
+                hint: const Text('Selecione uma categoria'),
+                items: _categorias.map((ParseObject categoria) {
+                  return DropdownMenuItem<String>(
+                    value: categoria.objectId,
+                    child: Text(categoria.get<String>('nome') ?? 'Categoria'),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategoryId = value;
+                  });
+                },
+                buttonStyleData: ButtonStyleData(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
                   ),
                 ),
+                dropdownStyleData: DropdownStyleData(
+                  maxHeight: 200, // Altura do dropdown
+                  width: MediaQuery.of(context).size.width *
+                      0.8, // Largura do dropdown
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  offset: const Offset(
+                      0, 8), // Deslocamento para garantir que desça
+                ),
+                menuItemStyleData: MenuItemStyleData(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0, vertical: 8.0),
+                ),
               ),
             ),
+            const SizedBox(height: 12),
             _buildEditableField(
                 _descriptionPlaceholder, _descriptionController),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: _selectImages,
-              child: Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: Colors.grey.withOpacity(0.5)),
-                ),
-                child: Column(
-                  children: [
-                    const Text('Selecionar imagens'),
-                    const SizedBox(height: 8),
-                    _imageFiles != null
-                        ? Wrap(
-                            children: _imageFiles!
-                                .map((file) => Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: Image.file(
-                                        File(file.path),
-                                        height: 50,
-                                        width: 50,
-                                      ),
-                                    ))
-                                .toList(),
-                          )
-                        : const Text('Nenhuma imagem selecionada'),
-                  ],
-                ),
-              ),
+            const SizedBox(height: 12),
+            _buildEditableField(_locationPlaceholder, _locationController),
+            _buildLocationSuggestions(),
+            _buildImagePreview(),
+            ElevatedButton(
+              onPressed: _selectImages,
+              child: const Text('Selecionar Imagens'),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: criarDemanda,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromRGBO(0, 123, 255, 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                minimumSize: Size(MediaQuery.of(context).size.width * 0.8, 0),
-              ),
               child: const Text('Criar Demanda'),
             ),
           ],
