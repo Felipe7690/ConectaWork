@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:trabalho_conecta_work/components/my_app_bar.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-class Proposta extends StatefulWidget {
-  const Proposta({super.key});
-
+class ProposalScreen extends StatefulWidget {
   @override
-  State<Proposta> createState() => _PropostaState();
+  _ProposalScreenState createState() => _ProposalScreenState();
 }
 
-class _PropostaState extends State<Proposta>
-    with SingleTickerProviderStateMixin {
+class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<ParseObject> sentProposals = [];
+  List<ParseObject> receivedProposals = [];
+  bool isLoading = true; // Estado de carregamento
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _initializeProposals(); // Inicializa as propostas assim que o usuário logar
   }
 
   @override
@@ -25,78 +25,154 @@ class _PropostaState extends State<Proposta>
     super.dispose();
   }
 
+  // Função para criar propostas vazias no banco assim que o usuário logar
+  Future<void> _initializeProposals() async {
+  // Verifica se o usuário está autenticado corretamente
+  final currentUser = ParseUser.currentUser();
+
+  if (currentUser == null) {
+    // Se não estiver autenticado, exibe uma mensagem ou redireciona para login
+    print('Usuário não autenticado!');
+    return;
+  }
+
+  // Se o usuário estiver autenticado, cria as propostas vazias
+  await _createEmptyProposals(currentUser as ParseUser);
+
+  // Após garantir que as propostas vazias foram criadas, carrega as propostas
+  _fetchProposals();
+}
+
+
+  // Função para criar propostas vazias
+  Future<void> _createEmptyProposals(ParseUser currentUser) async {
+    // Criação de proposta enviada vazia
+    final sentProposal = ParseObject('Proposal')
+      ..set('type', 'sent')
+      ..set('user', currentUser)
+      ..set('title', '')
+      ..set('detail', '');
+    
+    // Criação de proposta recebida vazia
+    final receivedProposal = ParseObject('Proposal')
+      ..set('type', 'received')
+      ..set('user', currentUser)
+      ..set('title', '')
+      ..set('detail', '');
+
+    // Envia as propostas para o Parse Server
+    await sentProposal.save();
+    await receivedProposal.save();
+  }
+
+  // Função para buscar as propostas enviadas e recebidas do banco
+  Future<void> _fetchProposals() async {
+    setState(() {
+      isLoading = true; // Ativa o estado de carregamento
+    });
+
+    // Consulta para buscar propostas enviadas
+    QueryBuilder<ParseObject> sentQuery = QueryBuilder<ParseObject>(ParseObject('Proposal'))
+      ..whereEqualTo('type', 'sent')
+      ..whereEqualTo('user', ParseUser.currentUser()!); // Filtro para o usuário logado
+
+    // Consulta para buscar propostas recebidas
+    QueryBuilder<ParseObject> receivedQuery = QueryBuilder<ParseObject>(ParseObject('Proposal'))
+      ..whereEqualTo('type', 'received')
+      ..whereEqualTo('user', ParseUser.currentUser()!); // Filtro para o usuário logado
+
+    try {
+      // Realiza as requisições
+      final ParseResponse sentResponse = await sentQuery.query();
+      final ParseResponse receivedResponse = await receivedQuery.query();
+
+      // Verifica se as requisições foram bem-sucedidas
+      if (sentResponse.success && receivedResponse.success) {
+        setState(() {
+          // Fazendo o cast para List<ParseObject> explicitamente
+          sentProposals = List<ParseObject>.from(sentResponse.results ?? []);
+          receivedProposals = List<ParseObject>.from(receivedResponse.results ?? []);
+          isLoading = false; // Desativa o estado de carregamento
+        });
+      } else {
+        // Caso a consulta falhe
+        setState(() {
+          isLoading = false;
+        });
+        _showErrorDialog('Failed to fetch proposals.');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      _showErrorDialog('An error occurred: $e');
+    }
+  }
+
+  // Função para exibir um diálogo de erro
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
-      appBar: MyAppBar(),
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Color(0xFF004AAD), // Cor de fundo da barra de abas
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: Colors.white, // Cor do fundo da aba selecionada
-                borderRadius: BorderRadius.circular(10), // Bordas arredondadas
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              indicatorPadding: EdgeInsets.symmetric(horizontal: 1),
-              labelColor: Color(0xFF004AAD), // Cor do texto da aba selecionada
-              unselectedLabelColor:
-                  Colors.white, // Cor das abas não selecionadas
-              tabs: [
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.arrowUpRightFromSquare),
-                  text: 'Enviadas',
-                ),
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.box),
-                  text: 'Recebidas',
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
+      appBar: AppBar(
+        title: Text('Proposals'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'Sent'),
+            Tab(text: 'Received'),
+          ],
+        ),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Exibe o indicador de carregamento
+          : TabBarView(
               controller: _tabController,
               children: [
-                // Propostas Enviadas
-                ListView(
-                  padding: const EdgeInsets.all(16.0),
-                  children: const [
-                    ListTile(
-                      title: Text('Proposta 1 - Enviada'),
-                      subtitle: Text('Detalhes da proposta enviada'),
-                    ),
-                    ListTile(
-                      title: Text('Proposta 2 - Enviada'),
-                      subtitle: Text('Detalhes da proposta enviada'),
-                    ),
-                  ],
-                ),
-                // Propostas Recebidas
-                ListView(
-                  padding: const EdgeInsets.all(16.0),
-                  children: const [
-                    ListTile(
-                      title: Text('Proposta 1 - Recebida'),
-                      subtitle: Text('Detalhes da proposta recebida'),
-                    ),
-                    ListTile(
-                      title: Text('Proposta 2 - Recebida'),
-                      subtitle: Text('Detalhes da proposta recebida'),
-                    ),
-                  ],
-                ),
+                _buildProposalList(sentProposals, 'No proposals sent'),
+                _buildProposalList(receivedProposals, 'No proposals received'),
               ],
             ),
-          ),
-        ],
-      ),
+    );
+  }
+
+  // Função que retorna o layout das propostas (lista)
+  Widget _buildProposalList(List<ParseObject> proposals, String emptyMessage) {
+    if (proposals.isEmpty) {
+      return Center(child: Text(emptyMessage));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: proposals.length,
+      itemBuilder: (context, index) {
+        final proposal = proposals[index];
+        final title = proposal.get<String>('title') ?? 'No title'; // Usando a coluna 'title'
+        final details = proposal.get<String>('detail') ?? 'No details'; // Usando a coluna 'detail'
+
+        return ListTile(
+          title: Text(title),
+          subtitle: Text(details),
+        );
+      },
     );
   }
 }
