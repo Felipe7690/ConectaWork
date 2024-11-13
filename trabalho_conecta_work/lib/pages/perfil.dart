@@ -12,16 +12,20 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  ParseFileBase? _profileImage;
+  String? _userName;
+
   @override
   void initState() {
     super.initState();
     checkUserCompletion();
+    _loadProfileData();
   }
 
   Future<void> checkUserCompletion() async {
     final currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser != null) {
-      final isComplete = currentUser.get('completar_cadastro') ?? false;
+      final isComplete = currentUser.get('registerCompleted') ?? false;
 
       if (!isComplete) {
         // Exibe o popup de completar cadastro
@@ -38,7 +42,7 @@ class _ProfileState extends State<Profile> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Cancelar'),
+                    child: const Text('Depois'),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -53,6 +57,17 @@ class _ProfileState extends State<Profile> {
           );
         });
       }
+    }
+  }
+
+  // Carrega os dados do perfil, incluindo a imagem e o nome do usuário
+  Future<void> _loadProfileData() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser != null) {
+      setState(() {
+        _profileImage = currentUser.get<ParseFileBase>('profileImage');
+        _userName = currentUser.get<String>('username') ?? 'Usuário';
+      });
     }
   }
 
@@ -79,6 +94,7 @@ class _ProfileState extends State<Profile> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Imagem de perfil
               Container(
                 padding: const EdgeInsets.all(0),
                 decoration: BoxDecoration(
@@ -88,16 +104,21 @@ class _ProfileState extends State<Profile> {
                     width: 3.0,
                   ),
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 50,
-                  backgroundImage: NetworkImage(
-                      'https://avatars.githubusercontent.com/u/116851523?v=4'),
+                  backgroundImage: _profileImage != null
+                      ? NetworkImage(_profileImage!.url!)
+                      : null,
+                  child: _profileImage == null
+                      ? const Icon(Icons.person, size: 50)
+                      : null,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Olá, Douglas Cássio',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // Nome do usuário
+              Text(
+                'Olá, ${_userName != null ? _userName!.split(' ').take(1).join('') : 'Usuário'}',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               ListTile(
@@ -108,8 +129,10 @@ class _ProfileState extends State<Profile> {
                 title: const Text('Propostas'),
                 onTap: () {
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Proposta()),
+                    context, 
+                    MaterialPageRoute(
+                      builder: (context) => ProposalScreen(),
+                    ),
                   );
                 },
               ),
@@ -134,12 +157,14 @@ class _ProfileState extends State<Profile> {
                   color: Color.fromRGBO(0, 74, 173, 1),
                 ),
                 title: const Text('Editar perfil'),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  // Navega para a tela de editar perfil e recarrega os dados ao retornar
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => const EditProfileSheet()),
                   );
+                  _loadProfileData(); // Atualiza os dados ao retornar
                 },
               ),
             ],
