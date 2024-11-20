@@ -36,7 +36,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
   GooglePlace? _googlePlace;
   List<AutocompletePrediction> _placePredictions = [];
 
-  // Fetch categories from the database
   Future<void> _fetchCategorias() async {
     final query = QueryBuilder<ParseObject>(ParseObject('Categoria'));
     final response = await query.query();
@@ -54,7 +53,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
     }
   }
 
-  // Create a new demand
   Future<void> criarDemanda() async {
     if (_titleController.text.isEmpty ||
         _valueController.text.isEmpty ||
@@ -87,7 +85,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
       ..set('categoria_pointer',
           ParseObject('Categoria')..set('objectId', selectedCategoryId));
 
-    // Use apenas 'coordenadas' como GeoPoint para armazenar a localização
     final geoPoint = ParseGeoPoint(
         latitude: selectedLatitude!, longitude: selectedLongitude!);
     demanda.set('coordenada', geoPoint);
@@ -121,6 +118,18 @@ class _NovaDemandaState extends State<NovaDemanda> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demanda criada com sucesso!')),
       );
+
+      _titleController.clear();
+      _valueController.clear();
+      _descriptionController.clear();
+      _locationController.clear();
+      setState(() {
+        selectedCategoryId = null;
+        selectedLocation = null;
+        selectedLatitude = null;
+        selectedLongitude = null;
+        _imageFiles = null;
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro: ${response.error?.message}')),
@@ -128,7 +137,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
     }
   }
 
-  // Fetch place suggestions based on user input
   Future<void> _fetchPlaceSuggestions(String query) async {
     if (_googlePlace != null) {
       final response = await _googlePlace!.autocomplete.get(query);
@@ -148,12 +156,10 @@ class _NovaDemandaState extends State<NovaDemanda> {
   @override
   void initState() {
     super.initState();
-    _googlePlace = GooglePlace(
-        'AIzaSyAqEpiuZYAYvCKRVeXydjsRVo1KL6nBPRw'); // Replace with your API key
+    _googlePlace = GooglePlace('AIzaSyAqEpiuZYAYvCKRVeXydjsRVo1KL6nBPRw');
     _fetchCategorias();
   }
 
-  // Build editable field for input
   Widget _buildEditableField(
       String placeholder, TextEditingController controller,
       {bool isNumeric = false}) {
@@ -188,7 +194,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
     );
   }
 
-  // Select images from the device
   Future<void> _selectImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? selectedImages = await picker.pickMultiImage();
@@ -199,7 +204,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
     }
   }
 
-  // Show image preview
   Widget _buildImagePreview() {
     if (_imageFiles == null || _imageFiles!.isEmpty) {
       return Container();
@@ -210,7 +214,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
         spacing: 8.0,
         children: _imageFiles!.map((image) {
           return ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             child: Image.file(
               File(image.path),
               width: 80,
@@ -223,7 +227,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
     );
   }
 
-  // Show location suggestions based on user input
   Widget _buildLocationSuggestions() {
     if (_placePredictions.isEmpty) {
       return Container();
@@ -239,6 +242,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
             setState(() {
               selectedLocation = prediction.description;
               _locationController.text = prediction.description ?? '';
+              _placePredictions.clear();
             });
 
             final placeDetails =
@@ -276,68 +280,132 @@ class _NovaDemandaState extends State<NovaDemanda> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
             _buildEditableField(_titlePlaceholder, _titleController),
             _buildEditableField(_valuePlaceholder, _valueController,
                 isNumeric: true),
-            const SizedBox(height: 12),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: DropdownButton2<String>(
-                value: selectedCategoryId,
-                hint: const Text('Selecione uma categoria'),
-                items: _categorias.map((ParseObject categoria) {
-                  return DropdownMenuItem<String>(
-                    value: categoria.objectId,
-                    child: Text(categoria.get<String>('nome') ?? 'Categoria'),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategoryId = value;
-                  });
-                },
-                buttonStyleData: ButtonStyleData(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.0),
-                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
+            Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: Container(
+                height: 80,
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: DropdownButton2<String>(
+                  value: selectedCategoryId,
+                  hint: Padding(
+                    padding: EdgeInsets.only(left: 14),
+                    child: Text(
+                      'Selecione uma categoria',
+                      style: TextStyle(
+                        color: Colors.black87,
+                      ),
+                    ),
                   ),
-                ),
-                dropdownStyleData: DropdownStyleData(
-                  maxHeight: 200, // Altura do dropdown
-                  width: MediaQuery.of(context).size.width *
-                      0.8, // Largura do dropdown
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.0),
+                  items: _categorias.map((ParseObject categoria) {
+                    return DropdownMenuItem<String>(
+                      value: categoria.objectId,
+                      child: Text(
+                        categoria.get<String>('nome') ?? 'Categoria',
+                        style: TextStyle(
+                          color: Colors.black87,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategoryId = value;
+                    });
+                  },
+                  buttonStyleData: ButtonStyleData(
+                    height: 80,
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                    ),
                   ),
-                  offset: const Offset(
-                      0, 8), // Deslocamento para garantir que desça
-                ),
-                menuItemStyleData: MenuItemStyleData(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 8.0),
+                  dropdownStyleData: DropdownStyleData(
+                    maxHeight: 200,
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    offset: const Offset(0, -4),
+                  ),
+                  menuItemStyleData: MenuItemStyleData(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 8.0),
+                  ),
+                  underline: SizedBox.shrink(),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
             _buildEditableField(
                 _descriptionPlaceholder, _descriptionController),
-            const SizedBox(height: 12),
             _buildEditableField(_locationPlaceholder, _locationController),
             _buildLocationSuggestions(),
-            _buildImagePreview(),
-            ElevatedButton(
-              onPressed: _selectImages,
-              child: const Text('Selecionar Imagens'),
+            GestureDetector(
+              onTap: _selectImages,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                padding: const EdgeInsets.all(12.0),
+                margin: EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Adicionar Imagens',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          'Toque para adicionar várias imagens',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const FaIcon(FontAwesomeIcons.camera),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: criarDemanda,
-              child: const Text('Criar Demanda'),
+            _buildImagePreview(),
+            if (_imageFiles != null && _imageFiles!.isNotEmpty)
+              Wrap(
+                spacing: 8.0,
+              ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: criarDemanda,
+                  label: const Text(
+                    "Criar Demanda",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

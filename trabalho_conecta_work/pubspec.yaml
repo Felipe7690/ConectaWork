@@ -15,7 +15,7 @@ dependencies:
   searchfield: ^1.1.6
   font_awesome_flutter: ^10.1.0
   image_picker: ^1.1.2
-  parse_server_sdk_flutter: ^8.0.0 # Use este pacote para interação com Parse em Flutter
+  parse_server_sdk_flutter: ^8.0.0
   file_picker: ^5.2.3
   google_maps_flutter: ^2.1.1
   geolocator: ^9.0.0
