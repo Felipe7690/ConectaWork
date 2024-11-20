@@ -1,262 +1,259 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../components/my_app_bar.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+import 'package:intl/intl.dart';
 
-class EditProfileSheet extends StatelessWidget {
+class EditProfileSheet extends StatefulWidget {
   const EditProfileSheet({super.key});
+
+  @override
+  _EditProfileSheetState createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<EditProfileSheet> {
+  File? _selectedImage;
+  String _imageUrl = '';
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _cpfController = TextEditingController();
+  final _birthdateController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  final _streetController = TextEditingController();
+  final _numberController = TextEditingController();
+  final _neighborhoodController = TextEditingController();
+  final _complementController = TextEditingController();
+  final _cityController = TextEditingController();
+
+  DateTime? _birthdate;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser != null) {
+      setState(() {
+        _imageUrl = currentUser.get<ParseFile>('profileImage')?.url ?? '';
+        _nameController.text = currentUser.get<String>('username') ?? '';
+        _descriptionController.text = currentUser.get<String>('description') ?? '';
+        _emailController.text = currentUser.get<String>('email') ?? '';
+        _cpfController.text = currentUser.get<String>('cpf') ?? '';
+        _phoneController.text = currentUser.get<String>('phone') ?? '';
+
+        _birthdate = currentUser.get<DateTime>('birthdate');
+        _birthdateController.text = _birthdate != null
+            ? DateFormat('dd-MM-yyyy').format(_birthdate!)
+            : '';
+
+        final addressMap = currentUser.get<Map<String, dynamic>>('address');
+        if (addressMap != null) {
+          _streetController.text = addressMap['street'] ?? '';
+          _numberController.text = addressMap['number'] ?? '';
+          _neighborhoodController.text = addressMap['neighborhood'] ?? '';
+          _complementController.text = addressMap['complement'] ?? '';
+          _cityController.text = addressMap['city'] ?? '';
+        }
+      });
+    }
+  }
+
+  Future<void> _selectImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser != null) {
+      currentUser
+        ..set('username', _nameController.text)
+        ..set('description', _descriptionController.text)
+        ..set('email', _emailController.text)
+        ..set('cpf', _cpfController.text)
+        ..set('birthdate', _birthdate)
+        ..set('phone', _phoneController.text)
+        ..set('address', {
+          'street': _streetController.text,
+          'number': _numberController.text,
+          'neighborhood': _neighborhoodController.text,
+          'complement': _complementController.text,
+          'city': _cityController.text,
+        });
+
+      if (_selectedImage != null) {
+        final parseFile = ParseFile(_selectedImage!);
+        final response = await parseFile.save();
+        if (response.success) {
+          currentUser.set('profileImage', parseFile);
+        } else {
+          print('Erro ao salvar a imagem: ${response.error?.message}');
+        }
+      }
+
+      final response = await currentUser.save();
+      if (response.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil atualizado com sucesso')),
+        );
+        Navigator.pop(context);
+      } else {
+        print('Erro ao atualizar o perfil: ${response.error?.message}');
+      }
+    }
+  }
+
+  Future<void> _selectBirthdate() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _birthdate ?? DateTime.now().subtract(const Duration(days: 365 * 18)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        _birthdate = selectedDate;
+        _birthdateController.text = DateFormat('dd-MM-yyyy').format(selectedDate);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      appBar: const MyAppBar(showAddIcon: false),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 16.0,
-            right: 16.0,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: 16.0,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Botão Voltar Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.arrowLeft,
-                      color: Color.fromRGBO(0, 74, 173, 1),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color.fromRGBO(0, 74, 173, 1),
-                        width: 3.0,
-                      ),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage(
-                          'https://avatars.githubusercontent.com/u/116851523?v=4'),
-                    ),
-                  ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: Color.fromRGBO(0, 74, 173, 1),
-                      shape: BoxShape.circle,
-                    ),
-                    // Alterar Imagem de Perfil
-                    child: IconButton(
-                      icon: const Icon(Icons.camera_alt),
-                      color: Colors.white,
-                      onPressed: () {
-                        _onEditProfileImage(context);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              // Formulário da Edição de Perfil
-              const Text(
-                'Editar Perfil',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-
-              // Campos de Perfil com ícones de edição
-              _buildEditableFieldWithEdit(
-                label: 'Nome',
-                initialValue: 'Douglas',
-                context: context,
-              ),
-              _buildEditableFieldWithEdit(
-                label: 'Sobrenome',
-                initialValue: 'Cássio',
-                context: context,
-              ),
-              _buildEditableFieldWithEdit(
-                label: 'Breve Descrição',
-                initialValue: 'Olá, sou Douglas de Rubiataba Goiás.',
-                context: context,
-              ),
-              _buildEditableFieldWithEdit(
-                label: 'Número de Telefone',
-                initialValue: '62 9.8553-3417',
-                context: context,
-              ),
-              _buildEditableFieldWithEdit(
-                label: 'Email',
-                initialValue: 'douglas@gmail.com',
-                context: context,
-              ),
-              _buildEditableFieldWithEdit(
-                label: 'Endereço',
-                initialValue: 'Av Aroeira, Q. A, L. 7, Setor Rubiatabinha',
-                context: context,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Botões Cancelar e Salvar Alterações lado a lado
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey, // Cor para o botão Cancelar
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Cancelar',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Salvar Alterações',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Função para construir os campos com ícones de edição
-  Widget _buildEditableFieldWithEdit({
-    required String label,
-    required String initialValue,
-    required BuildContext context,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              '$label: $initialValue',
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
+      appBar: AppBar(
+        title: const Text('Editar Perfil'),
+        actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: Color.fromRGBO(0, 74, 173, 1)),
-            onPressed: () {
-              _editProfileFieldDialog(context, label, initialValue);
-            },
+            icon: const Icon(Icons.save),
+            onPressed: _saveProfile,
           ),
         ],
       ),
-    );
-  }
-
-  // Função que cria o modal para editar campos de perfil
-  void _editProfileFieldDialog(
-      BuildContext context, String label, String initialValue) {
-    final TextEditingController controller =
-        TextEditingController(text: initialValue);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Editar $label'),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              labelText: label,
-              border: const OutlineInputBorder(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: _selectedImage != null
+                    ? FileImage(_selectedImage!)
+                    : NetworkImage(_imageUrl.isEmpty
+                        ? 'https://example.com/default-profile.png'
+                        : _imageUrl) as ImageProvider,
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: _selectImage,
+                child: const Text('Alterar imagem'),
+              ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Aqui você pode adicionar a lógica para salvar a alteração
-                Navigator.of(context).pop();
-              },
-              child: const Text('Salvar'),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                
+                children: [
+                  const Text(
+                    'Dados',
+                    style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Nome'),
+                  ),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(labelText: 'Breve descrição'),
+                  ),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
+                  TextFormField(
+                    controller: _cpfController,
+                    decoration: const InputDecoration(labelText: 'CPF'),
+                  ),
+                  TextFormField(
+                    controller: _birthdateController,
+                    readOnly: true,
+                    onTap: _selectBirthdate,
+                    decoration: const InputDecoration(labelText: 'Data de nascimento'),
+                  ),
+                  TextFormField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(labelText: 'Número de telefone'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Endereço',
+                    style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextFormField(
+                    controller: _streetController,
+                    decoration: const InputDecoration(labelText: 'Rua'),
+                  ),
+                  TextFormField(
+                    controller: _numberController,
+                    decoration: const InputDecoration(labelText: 'Número'),
+                  ),
+                  TextFormField(
+                    controller: _neighborhoodController,
+                    decoration: const InputDecoration(labelText: 'Bairro'),
+                  ),
+                  TextFormField(
+                    controller: _complementController,
+                    decoration: const InputDecoration(labelText: 'Complemento'),
+                  ),
+                  TextFormField(
+                    controller: _cityController,
+                    decoration: const InputDecoration(labelText: 'Cidade'),
+                  ),
+                ],
+              ),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  // Função que será chamada ao clicar no botão de editar imagem
-  void _onEditProfileImage(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16.0),
-          height: 150,
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt,
-                    color: Color.fromRGBO(0, 73, 173, 1)),
-                title: const Text('Tirar uma foto'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo,
-                    color: Color.fromRGBO(0, 73, 173, 1)),
-                title: const Text('Escolher da galeria'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

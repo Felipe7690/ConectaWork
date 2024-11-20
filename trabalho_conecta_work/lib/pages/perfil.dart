@@ -25,7 +25,7 @@ class _ProfileState extends State<Profile> {
   Future<void> checkUserCompletion() async {
     final currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser != null) {
-      final isComplete = currentUser.get('registerCompleted') ?? false;
+       final isComplete = currentUser.get('registerCompleted') ?? false;
 
       if (!isComplete) {
         // Exibe o popup de completar cadastro
@@ -42,14 +42,23 @@ class _ProfileState extends State<Profile> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Depois'),
+                    child: const Text('Depois',
+                     style: TextStyle(color: Colors.black,)),
+                      
                   ),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                       Navigator.pushNamed(context, '/completar_cadastro');
                     },
-                    child: const Text('Completar Cadastro'),
+                     style: ElevatedButton.styleFrom(
+                     backgroundColor: const Color.fromARGB(255, 12, 86, 146),
+                     shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(2)
+                     )
+                    ),
+                    child: const Text('Completar Cadastro',
+                      style: TextStyle(color:Color.fromARGB(255, 255, 255, 255)),),
                   ),
                 ],
               );
@@ -60,7 +69,7 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  // Carrega os dados do perfil, incluindo a imagem e o nome do usuário
+
   Future<void> _loadProfileData() async {
     final currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser != null) {
