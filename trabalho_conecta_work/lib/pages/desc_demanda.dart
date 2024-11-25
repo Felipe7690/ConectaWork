@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import 'package:intl/intl.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 class DescDemanda extends StatefulWidget {
-  const DescDemanda({Key? key}) : super(key: key);
+  final String objectId;
+
+  const DescDemanda({Key? key, required this.objectId}) : super(key: key);
 
   @override
   State<DescDemanda> createState() => _DescDemandaState();
 }
-
-final List<String> banners = [
-  'assets/imagens/banner1.jpg',
-  'assets/imagens/banner3.jpg',
-  'assets/imagens/banner4.jpg',
-];
-
-int _currentIndex = 0;
 
 class _DescDemandaState extends State<DescDemanda> {
   final MoneyMaskedTextController _valorController = MoneyMaskedTextController(
@@ -24,21 +18,209 @@ class _DescDemandaState extends State<DescDemanda> {
     thousandSeparator: '.',
     leftSymbol: 'R\$ ',
   );
+
   final TextEditingController _dataEntregaController = TextEditingController();
   final MaskedTextController _whatsappController =
       MaskedTextController(mask: '(00) 0.0000-0000');
+
+  ParseObject? _demanda;
+  List<String> _imagens = [];
+  String? _criadorNome;
+  String? _criadorFoto;
+
+  ParseObject? get proposta {
+    return _demanda; // Ou outra lógica conforme sua necessidade
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDemanda();
+  }
+
+  void _loadDemanda() async {
+    final QueryBuilder<ParseObject> query =
+        QueryBuilder<ParseObject>(ParseObject('Demanda'))
+          ..includeObject(['usuario_pointer']) // Inclui dados do criador
+          ..whereEqualTo('objectId', widget.objectId);
+
+    final ParseResponse response = await query.query();
+
+    if (response.success &&
+        response.results != null &&
+        response.results!.isNotEmpty) {
+      final demanda = response.results!.first as ParseObject;
+
+      setState(() {
+        _demanda = demanda;
+
+        // Obtendo as imagens do campo array 'imagem'
+        final List<dynamic>? imagensArray =
+            demanda.get<List<dynamic>>('imagem');
+        _imagens = imagensArray != null
+            ? imagensArray.map((e) => (e as ParseFile).url!).toList()
+            : [];
+
+        // Obtendo o nome e a foto do criador
+        final ParseObject? criador =
+            demanda.get<ParseObject>('usuario_pointer');
+        if (criador != null) {
+          _criadorNome =
+              criador.get<String>('username') ?? 'Criador desconhecido';
+          final ParseFile? criadorFotoFile =
+              criador.get<ParseFile>('profileImage');
+          _criadorFoto =
+              criadorFotoFile?.url; // Pega a URL da imagem do criador
+        } else {
+          _criadorNome = 'Criador não identificado';
+          _criadorFoto = null;
+        }
+      });
+    } else {
+      debugPrint('Erro ao carregar a demanda: ${response.error?.message}');
+    }
+  }
+
+  String _getTempoDecorrido() {
+    final DateTime? createdAt = _demanda?.createdAt;
+
+    if (createdAt == null) {
+      return "Data desconhecida";
+    }
+
+    final Duration diferenca = DateTime.now().difference(createdAt);
+
+    if (diferenca.inDays > 0) {
+      return "À ${diferenca.inDays} dia(s)";
+    } else if (diferenca.inHours > 0) {
+      return "À ${diferenca.inHours} hora(s)";
+    } else if (diferenca.inMinutes > 0) {
+      return "À ${diferenca.inMinutes} minuto(s)";
+    } else {
+      return "Agora mesmo";
+    }
+  }
+
+  Future<void> _enviarProposta() async {
+    if (_valorController.text.isEmpty ||
+        _dataEntregaController.text.isEmpty ||
+        _whatsappController.text.isEmpty) {
+      // Exibe mensagem de erro se algum campo não for preenchido
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Erro"),
+            content: const Text("Todos os campos devem ser preenchidos."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Obtenha o usuário logado com 'await' para garantir que ele seja carregado
+    final ParseUser? user = await ParseUser.currentUser();
+
+    // Verifique se o usuário está logado
+    if (user == null) {
+      print("Usuário não logado");
+      return;
+    }
+
+    // Pega o valor, a data de entrega e o número de WhatsApp
+    double? valor = double.tryParse(_valorController.text
+        .replaceAll('R\$', '')
+        .replaceAll('.', '')
+        .replaceAll(',', '.'));
+
+    if (valor == null) {
+      print("Valor inválido");
+      return;
+    }
+
+    // Converte a data de entrega para DateTime
+    DateTime? entrega =
+        DateFormat('dd/MM/yyyy').parse(_dataEntregaController.text);
+
+    // Criação do objeto Proposta
+    final ParseObject proposta = ParseObject('Proposal')
+      ..set('valor', valor) // Define o valor como numérico
+      ..set('entrega', entrega) // Define a data de entrega
+      ..set('telefone', _whatsappController.text) // Define o número de WhatsApp
+      ..set('pointer_demanda', _demanda) // Define o ponteiro para a demanda
+      ..set('pointer_user', user); // Define o ponteiro para o usuário logado
+
+    // Salve a proposta e aguarde a resposta
+    final ParseResponse response = await proposta.save();
+
+    if (response.success) {
+      print("Proposta enviada com sucesso!");
+      // Exibe uma mensagem de sucesso
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Sucesso"),
+            content: const Text("Proposta enviada com sucesso."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print("Erro ao enviar a proposta: ${response.error?.message}");
+      // Exibe uma mensagem de erro
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Erro"),
+            content:
+                Text("Erro ao enviar a proposta: ${response.error?.message}"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
 
+    if (_demanda == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Carregando..."),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
         child: Column(
           children: [
             _buildHeader(context),
-            _buildBanners(screenWidth),
+            _buildImageCarousel(screenWidth),
             _buildDescricao(),
             _buildDescricaoCompleta(),
             _buildEnviarPropostaButton(),
@@ -57,10 +239,7 @@ class _DescDemandaState extends State<DescDemanda> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 16.0),
             child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: Color.fromRGBO(0, 74, 173, 1),
-              ),
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF004AAD)),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -77,125 +256,82 @@ class _DescDemandaState extends State<DescDemanda> {
     );
   }
 
-  Widget _buildBanners(double screenWidth) {
-    final int numberOfDots = banners.length;
-    final double indicatorWidth = (numberOfDots * 12) + 20;
-
-    return SafeArea(
-      top: false,
-      child: SizedBox(
-        height: screenWidth,
-        width: screenWidth,
-        child: Stack(
-          children: [
-            PageView.builder(
-              itemCount: banners.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 1),
-                  child: Image.asset(
-                    banners[index],
+  Widget _buildImageCarousel(double screenWidth) {
+    return _imagens.isNotEmpty
+        ? SafeArea(
+            top: false,
+            child: SizedBox(
+              height: screenWidth,
+              width: screenWidth,
+              child: PageView.builder(
+                itemCount: _imagens.length,
+                itemBuilder: (context, index) {
+                  return Image.network(
+                    _imagens[index],
                     fit: BoxFit.cover,
                     width: screenWidth,
                     height: screenWidth,
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-            Positioned(
-              bottom: 10,
-              left: (screenWidth - indicatorWidth) / 2,
-              child: _buildIndicator(indicatorWidth),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIndicator(double indicatorWidth) {
-    return Container(
-      width: indicatorWidth,
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(banners.length, (index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _currentIndex == index
-                  ? Colors.white
-                  : Colors.grey.withOpacity(0.9),
-            ),
+          )
+        : const SizedBox(
+            height: 200,
+            child: Center(child: Text("Nenhuma imagem disponível")),
           );
-        }),
-      ),
-    );
   }
 
   Widget _buildDescricao() {
+    // Obtém o valor da demanda, formatando como moeda
+    final num? valor = _demanda?.get<num>('valor'); // Suporta int e double
+    final String valorFormatado = valor != null
+        ? NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(valor)
+        : 'Valor não informado';
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(10),
       decoration: const BoxDecoration(color: Colors.white),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(
-                        'https://avatars.githubusercontent.com/u/116851523?v=4'),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(5),
-                    child: Text(
-                      "Douglas Cássio",
-                      style: TextStyle(
-                        color: Color(0xFF004AAD),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundImage: _criadorFoto != null
+                    ? NetworkImage(_criadorFoto!)
+                    : const AssetImage('assets/imagens/default_avatar.png')
+                        as ImageProvider,
+                radius: 30,
               ),
-            ),
-            const Text(
-              "Contratamos eletricista para serviços de manutenção e instalação elétrica.",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
+              const SizedBox(width: 10),
+              Text(
+                _criadorNome ?? 'Criador desconhecido',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF004AAD),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "À 5 dias | Rubiataba, Goiás, Brasil",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _demanda?.get<String>('titulo') ?? 'Sem título',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            valorFormatado,
+            style: const TextStyle(fontSize: 16, color: Colors.green),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "${_getTempoDecorrido()} | ${_demanda?.get<String>('localizacao') ?? 'Localização desconhecida'}",
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+        ],
       ),
     );
   }
@@ -210,19 +346,14 @@ class _DescDemandaState extends State<DescDemanda> {
         padding: const EdgeInsets.only(left: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
+          children: [
+            const Text(
               "Descrição:",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
-              "Buscamos eletricista qualificado para manutenção e instalação elétrica. O candidato deve ter experiência, conhecimento das normas de segurança e capacidade de trabalhar de forma autônoma...",
-              style: TextStyle(
-                fontSize: 16,
-              ),
+              _demanda?.get<String>('descricao') ?? 'Sem descrição',
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
@@ -371,19 +502,21 @@ class _DescDemandaState extends State<DescDemanda> {
               ),
             ),
             ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text(
-                  "Enviar",
-                  style: TextStyle(
-                    color: Color(0xFF004AAD),
-                  ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+                _enviarProposta(); // Chama a função para enviar a proposta
+              },
+              child: const Text(
+                "Enviar",
+                style: TextStyle(
+                  color: Color(0xFF004AAD),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                )),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                elevation: 0,
+              ),
+            ),
           ],
         );
       },

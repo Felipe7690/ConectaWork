@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:trabalho_conecta_work/pages/demanda.dart'; // Importe a página Demanda
+import 'package:trabalho_conecta_work/pages/demanda.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 class Inicio extends StatefulWidget {
   const Inicio({super.key});
@@ -10,33 +10,12 @@ class Inicio extends StatefulWidget {
 }
 
 class _InicioState extends State<Inicio> {
-  // Lista de banners (imagens)
   final List<String> banners = [
     'assets/imagens/banner1.jpg',
     'assets/imagens/banner3.jpg',
   ];
 
-  final List<String> categorias = [
-    'Eletricista',
-    'Encanador',
-    'Pintor',
-    'Jardinagem',
-    'Faxina',
-    'Reparos Gerais',
-    'Montagem',
-    'Limpeza Pós-Obra',
-  ];
-
-  // Lista de serviços populares
-  final List<Map<String, dynamic>> servicosPopulares = const [
-    {'nome': 'Eletricista', 'icone': FontAwesomeIcons.boltLightning},
-    {'nome': 'Encanador', 'icone': FontAwesomeIcons.wrench},
-    {'nome': 'Pintor', 'icone': FontAwesomeIcons.paintRoller},
-    {'nome': 'Jardinagem', 'icone': FontAwesomeIcons.tree},
-    {'nome': 'Faxina', 'icone': FontAwesomeIcons.broom},
-    {'nome': 'Reparos Gerais', 'icone': FontAwesomeIcons.toolbox},
-    {'nome': 'Montagem', 'icone': FontAwesomeIcons.gear},
-  ];
+  List<Map<String, dynamic>> servicosPopulares = []; // Lista vazia inicialmente
 
   final List<Map<String, dynamic>> demandasProximas = const [
     {
@@ -61,7 +40,56 @@ class _InicioState extends State<Inicio> {
     },
   ];
 
-  int _currentIndex = 0; // Índice atual da página no carrossel
+  int _currentIndex = 0;
+
+  final Map<String, IconData> categoryIcons = {
+    'teste': Icons.assignment,
+    'segurança': Icons.security,
+    'vendas': Icons.shopping_cart,
+    'eventos': Icons.event,
+    'transporte': Icons.directions_car,
+    'limpeza': Icons.cleaning_services,
+    'consultoria': Icons.support_agent,
+    'design': Icons.design_services,
+    'marketing': Icons.campaign,
+    'educação': Icons.school,
+    'saúde': Icons.local_hospital,
+    'construção': Icons.construction,
+    'tecnologia': Icons.computer,
+  };
+
+  IconData _getIconForCategory(String nome) {
+    final lowerCaseName = nome.toLowerCase().trim();
+    return categoryIcons[lowerCaseName] ?? Icons.help_outline; // Ícone genérico
+  }
+
+  Future<void> _fetchCategorias() async {
+    final query = QueryBuilder(ParseObject('Categoria'));
+    final response = await query.query();
+
+    if (response.success && response.results != null) {
+      List<Map<String, dynamic>> categoriasList = [];
+      for (var item in response.results!) {
+        final nome = item.get<String>('nome') ?? 'Desconhecida';
+        categoriasList.add({
+          'nome': nome,
+          'icone': _getIconForCategory(nome), // Ícone baseado no mapa
+        });
+      }
+
+      setState(() {
+        servicosPopulares = categoriasList;
+      });
+    } else {
+      print('Erro ao buscar categorias: ${response.error?.message}');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategorias();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,17 +97,13 @@ class _InicioState extends State<Inicio> {
       backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(top: 0), // Remover o espaço superior
+          padding: const EdgeInsets.only(top: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SafeArea(
-                top: false, // Mantém o SafeArea se necessário
                 child: Container(
-                  padding: const EdgeInsets.only(
-                    top: 20,
-                    bottom: 40, // Mantém o espaçamento inferior
-                  ),
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
                   child: Column(
                     children: [
                       SizedBox(
@@ -88,14 +112,13 @@ class _InicioState extends State<Inicio> {
                           itemCount: banners.length,
                           onPageChanged: (index) {
                             setState(() {
-                              _currentIndex =
-                                  index; // Atualiza o indicador de página
+                              _currentIndex = index;
                             });
                           },
                           itemBuilder: (context, index) {
                             return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10), // Espaço entre as imagens
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(15),
                                 child: Image.asset(
@@ -109,8 +132,6 @@ class _InicioState extends State<Inicio> {
                         ),
                       ),
                       const SizedBox(height: 5),
-
-                      // Indicador de pontos para o carrossel
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(banners.length, (index) {
@@ -121,8 +142,7 @@ class _InicioState extends State<Inicio> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _currentIndex == index
-                                  ? const Color(
-                                      0xFFFFFFFF) // Cor branca para o ponto ativo
+                                  ? const Color(0xFFFFFFFF)
                                   : Colors.grey,
                             ),
                           );
@@ -132,8 +152,6 @@ class _InicioState extends State<Inicio> {
                   ),
                 ),
               ),
-
-              // Seção "Serviços Populares" com fundo branco
               Container(
                 decoration: const BoxDecoration(
                   color: Color.fromRGBO(255, 255, 255, 1),
@@ -150,10 +168,7 @@ class _InicioState extends State<Inicio> {
                       padding: const EdgeInsets.only(left: 20),
                       child: const Text(
                         'Serviços Populares',
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 0, 0, 0), // Cor do texto
-                        ),
+                        style: TextStyle(fontSize: 20, color: Colors.black),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -161,18 +176,16 @@ class _InicioState extends State<Inicio> {
                       height: 150,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: servicosPopulares
-                            .length, // Quantidade de serviços populares
+                        itemCount: servicosPopulares.length,
                         itemBuilder: (context, index) {
                           final servico = servicosPopulares[index];
                           return GestureDetector(
                             onTap: () {
-                              // Navega para a página de Demanda e passa a categoria selecionada
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      Demanda(categoria: categorias[index]),
+                                      Demanda(categoria: servico['nome']),
                                 ),
                               );
                             },
@@ -189,32 +202,25 @@ class _InicioState extends State<Inicio> {
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.grey.withOpacity(0.3),
-                                          spreadRadius: 0,
                                           blurRadius: 2,
                                           offset: const Offset(4, 4),
                                         )
                                       ],
-                                      color: const Color.fromARGB(
-                                          255, 251, 251, 251),
+                                      color: const Color(0xFFF7F7F7),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Center(
-                                      child: FaIcon(
+                                      child: Icon(
                                         servico['icone'],
                                         size: 40,
-                                        color: const Color(
-                                            0xFF004AAD), // Cor do ícone
+                                        color: const Color(0xFF004AAD),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
                                     servico['nome'],
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      color: Color.fromARGB(255, 0, 0,
-                                          0), // Cor do nome do serviço
-                                    ),
+                                    style: const TextStyle(fontSize: 15),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -227,12 +233,8 @@ class _InicioState extends State<Inicio> {
                   ],
                 ),
               ),
-
-              // Outras seções da página
               Container(
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 255, 255, 255),
-                ),
+                color: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
                 child: Column(
@@ -240,19 +242,12 @@ class _InicioState extends State<Inicio> {
                   children: [
                     const Text(
                       'Demandas Próximas',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Color.fromARGB(255, 0, 0, 0),
-                      ),
+                      style: TextStyle(fontSize: 20, color: Colors.black),
                     ),
                     const SizedBox(height: 10),
-
-                    // Feed de demandas próximas
                     ListView.builder(
-                      shrinkWrap:
-                          true, // Permite que o ListView seja usado dentro de uma coluna
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Evita rolagem interna
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: demandasProximas.length,
                       itemBuilder: (context, index) {
                         final demanda = demandasProximas[index];
@@ -267,7 +262,6 @@ class _InicioState extends State<Inicio> {
                                 color: Colors.grey.withOpacity(0.2),
                                 spreadRadius: 2,
                                 blurRadius: 5,
-                                offset: const Offset(0, 3), // Mudança da sombra
                               ),
                             ],
                           ),
@@ -292,9 +286,9 @@ class _InicioState extends State<Inicio> {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                demanda['distancia'],
+                                'Distância: ${demanda['distancia']}',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.black54,
                                 ),
                               ),

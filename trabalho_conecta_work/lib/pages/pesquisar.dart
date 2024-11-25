@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:searchfield/searchfield.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:trabalho_conecta_work/pages/demanda.dart';
 
 class Pesquisar extends StatefulWidget {
@@ -8,215 +8,251 @@ class Pesquisar extends StatefulWidget {
   _PesquisarState createState() => _PesquisarState();
 }
 
-class _PesquisarState extends State<Pesquisar> with WidgetsBindingObserver {
-  final List<String> categorias = [
-    'Eletricista',
-    'Encanador',
-    'Pintor',
-    'Jardinagem',
-    'Faxina',
-    'Reparos Gerais',
-    'Montagem',
-    'Limpeza Pós-Obra',
-  ];
+class _PesquisarState extends State<Pesquisar> {
+  final Color primaryColor = Color.fromRGBO(0, 74, 173, 1);
 
-  final List<IconData> iconesCategorias = [
-    FontAwesomeIcons.boltLightning,
-    FontAwesomeIcons.wrench,
-    FontAwesomeIcons.paintRoller,
-    FontAwesomeIcons.tree,
-    FontAwesomeIcons.broom,
-    FontAwesomeIcons.toolbox,
-    FontAwesomeIcons.gear,
-    FontAwesomeIcons.soap,
-  ];
+  final Map<String, IconData> categoryIcons = {
+    'segurança': Icons.security,
+    'vendas': Icons.shopping_cart,
+    'eventos': Icons.event,
+    'transporte': Icons.directions_car,
+    'limpeza': Icons.cleaning_services,
+    'consultoria': Icons.support_agent,
+    'design': Icons.design_services,
+    'marketing': Icons.campaign,
+    'educação': Icons.school,
+    'saúde': Icons.local_hospital,
+    'construção': Icons.construction,
+    'tecnologia': Icons.computer,
+  };
 
+  List<String> categorias = [];
   int categoriasExibidas = 4;
-  final FocusNode _focusNode = FocusNode();
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  bool showSuggestions = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    _fetchCategorias();
+    _searchController.addListener(_handleSearchChange);
   }
 
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    _searchController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  Future<void> _fetchCategorias() async {
+    try {
+      final query = QueryBuilder<ParseObject>(ParseObject('Categoria'));
+      final response = await query.query();
 
-  // Remove o foco e limpa as sugestões ao mudar de tela
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
-      _focusNode.unfocus();
-      _searchController.clear();
+      if (mounted) {
+        // Verifica se o widget ainda está montado
+        if (response.success && response.results != null) {
+          setState(() {
+            categorias = response.results!
+                .map<String>((result) => result.get<String>('nome') ?? '')
+                .where((nome) => nome.isNotEmpty)
+                .toList();
+          });
+        } else {
+          _showSnackbar('Erro ao carregar categorias.');
+          print('Erro ao buscar categorias: ${response.error?.message}');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        // Verifica se o widget ainda está montado
+        _showSnackbar('Erro inesperado ao carregar categorias.');
+      }
+      print('Erro inesperado: $e');
     }
   }
 
-  // Filtra as categorias conforme o texto digitado
-  List<SearchFieldListItem<String>> _onSearchChanged(String query) {
-    if (query.isNotEmpty) {
-      return categorias
-          .where((categoria) =>
-              categoria.toLowerCase().contains(query.toLowerCase()))
-          .map((e) => SearchFieldListItem<String>(e))
-          .toList();
+  void _handleSearchChange() {
+    if (mounted) {
+      // Verifica se o widget ainda está montado
+      setState(() {
+        showSuggestions = _searchController.text.isNotEmpty;
+      });
     }
-    return [];
+  }
+
+  List<SearchFieldListItem<String>> _getSuggestions(String query) {
+    return categorias
+        .where((categoria) =>
+            categoria.toLowerCase().contains(query.toLowerCase()))
+        .map((categoria) => SearchFieldListItem<String>(categoria))
+        .toList();
+  }
+
+  void _clearSuggestions() {
+    setState(() {
+      showSuggestions = false;
+    });
+    _searchController.clear();
+    FocusScope.of(context).unfocus();
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Campo de pesquisa
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: SearchField<String>(
-                  controller: _searchController,
-                  focusNode: _focusNode,
-                  suggestions: [],
-                  suggestionState: Suggestion.hidden, // Inicialmente escondido
-                  hint: 'Procurar',
-                  searchInputDecoration: SearchInputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(
-                      Icons.search_rounded,
-                      color: Color.fromRGBO(0, 74, 173, 1),
-                    ),
-                    border: const OutlineInputBorder(),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color.fromRGBO(0, 74, 173, 1),
-                      ),
-                    ),
-                  ),
-                  itemHeight: 50,
-                  onSuggestionTap: (SearchFieldListItem<String> item) {
-                    // Navega para a página de Demanda e passa a categoria selecionada
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Demanda(
-                            categoria: item.item ?? 'Categoria Desconhecida'),
-                      ),
-                    );
-                  },
-                  onSearchTextChanged: (query) => _onSearchChanged(query),
-                ),
-              ),
-            ),
-
-            // Texto informativo centralizado
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  'Escolha a categoria de serviço desejado',
-                  style: TextStyle(
-                    fontSize: 22,
-                    color: Color.fromRGBO(0, 0, 0, 1),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-
-            // Grid de ícones de categorias
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 1.5,
-                ),
-                itemCount: categoriasExibidas,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      // Navega para a página de Demanda e passa a categoria selecionada
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              Demanda(categoria: categorias[index]),
+      backgroundColor: Colors.white,
+      body: categorias.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : GestureDetector(
+              onTap: _clearSuggestions,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          iconesCategorias[index],
-                          size: 40,
-                          color: Color.fromRGBO(0, 74, 173, 1),
-                        ),
-                        SizedBox(height: 7),
-                        Text(
-                          categorias[index],
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Color.fromRGBO(0, 74, 173, 1),
+                        child: SearchField<String>(
+                          controller: _searchController,
+                          hint: 'Procurar',
+                          suggestions: showSuggestions
+                              ? _getSuggestions(_searchController.text)
+                              : [],
+                          searchInputDecoration: SearchInputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: primaryColor,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(color: Colors.grey),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide:
+                                  BorderSide(color: primaryColor, width: 2),
+                            ),
+                            hintText: 'Procurar',
+                            hintStyle: TextStyle(color: Colors.grey),
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
                           ),
-                          textAlign: TextAlign.center,
+                          onSuggestionTap: (item) {
+                            final selectedCategory = item.item;
+                            if (selectedCategory != null &&
+                                selectedCategory.isNotEmpty) {
+                              _clearSuggestions();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Demanda(categoria: selectedCategory),
+                                ),
+                              );
+                            } else {
+                              _showSnackbar('Erro ao selecionar categoria.');
+                            }
+                          },
                         ),
-                      ],
+                      ),
                     ),
-                  );
-                },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: categorias.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Sem categorias disponíveis.',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            )
+                          : GridView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                childAspectRatio: 1.5,
+                              ),
+                              itemCount: categoriasExibidas,
+                              itemBuilder: (context, index) {
+                                final categoryName = categorias[index];
+                                final categoryIcon =
+                                    categoryIcons[categoryName.toLowerCase()] ??
+                                        Icons.category;
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Demanda(categoria: categoryName),
+                                      ),
+                                    );
+                                  },
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        categoryIcon,
+                                        size: 40,
+                                        color: primaryColor,
+                                      ),
+                                      SizedBox(height: 7),
+                                      Text(
+                                        categoryName,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: primaryColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    Center(
+                      child: categoriasExibidas < categorias.length
+                          ? TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  categoriasExibidas = categorias.length;
+                                });
+                              },
+                              child: Text(
+                                'Ver mais categorias',
+                                style: TextStyle(color: primaryColor),
+                              ),
+                            )
+                          : TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  categoriasExibidas = 4;
+                                });
+                              },
+                              child: Text(
+                                'Ver menos categorias',
+                                style: TextStyle(color: primaryColor),
+                              ),
+                            ),
+                    ),
+                    SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
-
-            // Botão "Ver mais" ou "Ver menos"
-            Center(
-              child: categoriasExibidas < categorias.length
-                  ? TextButton(
-                      onPressed: () {
-                        setState(() {
-                          categoriasExibidas = categorias.length;
-                        });
-                      },
-                      child: Text(
-                        'Ver mais categorias',
-                        style: TextStyle(color: Color.fromRGBO(0, 74, 173, 1)),
-                      ),
-                    )
-                  : TextButton(
-                      onPressed: () {
-                        setState(() {
-                          categoriasExibidas = 4;
-                        });
-                      },
-                      child: Text(
-                        'Ver menos categorias',
-                        style: TextStyle(color: Color.fromRGBO(0, 74, 173, 1)),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

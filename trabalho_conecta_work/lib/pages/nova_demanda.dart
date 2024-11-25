@@ -36,6 +36,8 @@ class _NovaDemandaState extends State<NovaDemanda> {
   GooglePlace? _googlePlace;
   List<AutocompletePrediction> _placePredictions = [];
 
+  bool _isLoading = false;
+
   Future<void> _fetchCategorias() async {
     final query = QueryBuilder<ParseObject>(ParseObject('Categoria'));
     final response = await query.query();
@@ -54,6 +56,12 @@ class _NovaDemandaState extends State<NovaDemanda> {
   }
 
   Future<void> criarDemanda() async {
+    // Inicia o carregamento
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Validação dos campos
     if (_titleController.text.isEmpty ||
         _valueController.text.isEmpty ||
         selectedCategoryId == null ||
@@ -61,6 +69,9 @@ class _NovaDemandaState extends State<NovaDemanda> {
         _locationController.text.isEmpty ||
         selectedLatitude == null ||
         selectedLongitude == null) {
+      setState(() {
+        _isLoading = false; // Finaliza o carregamento em caso de erro
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Preencha todos os campos')),
       );
@@ -69,6 +80,9 @@ class _NovaDemandaState extends State<NovaDemanda> {
 
     ParseUser? currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) {
+      setState(() {
+        _isLoading = false; // Finaliza o carregamento em caso de erro
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Usuário não autenticado')),
       );
@@ -102,6 +116,9 @@ class _NovaDemandaState extends State<NovaDemanda> {
         if (saveResponse.success) {
           parseFiles.add(parseImage);
         } else {
+          setState(() {
+            _isLoading = false; // Finaliza o carregamento em caso de erro
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
@@ -114,11 +131,16 @@ class _NovaDemandaState extends State<NovaDemanda> {
 
     final response = await demanda.save();
 
+    setState(() {
+      _isLoading = false; // Finaliza o carregamento
+    });
+
     if (response.success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Demanda criada com sucesso!')),
       );
 
+      // Limpar campos após sucesso
       _titleController.clear();
       _valueController.clear();
       _descriptionController.clear();
@@ -160,13 +182,13 @@ class _NovaDemandaState extends State<NovaDemanda> {
     _fetchCategorias();
   }
 
+  // Dentro do seu widget _buildEditableField
   Widget _buildEditableField(
       String placeholder, TextEditingController controller,
       {bool isNumeric = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Container(
-        height: 80,
         width: MediaQuery.of(context).size.width * 0.8,
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
@@ -176,6 +198,8 @@ class _NovaDemandaState extends State<NovaDemanda> {
         ),
         child: TextField(
           controller: controller,
+          minLines: placeholder == _descriptionPlaceholder ? 3 : 1,
+          maxLines: placeholder == _descriptionPlaceholder ? null : 1,
           decoration: InputDecoration(
             hintText: placeholder,
             border: InputBorder.none,
@@ -183,7 +207,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
           ),
           keyboardType: isNumeric
               ? TextInputType.numberWithOptions(decimal: true)
-              : TextInputType.text,
+              : TextInputType.multiline,
           onChanged: (value) {
             if (placeholder == _locationPlaceholder) {
               _fetchPlaceSuggestions(value);
@@ -279,6 +303,16 @@ class _NovaDemandaState extends State<NovaDemanda> {
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: Text(
+                "Dados da demanda",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             _buildEditableField(_titlePlaceholder, _titleController),
             _buildEditableField(_valuePlaceholder, _valueController,
@@ -391,11 +425,17 @@ class _NovaDemandaState extends State<NovaDemanda> {
               padding: const EdgeInsets.all(10),
               child: Center(
                 child: ElevatedButton.icon(
-                  onPressed: criarDemanda,
-                  label: const Text(
-                    "Criar Demanda",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  onPressed: _isLoading
+                      ? null
+                      : criarDemanda, // Desabilita o botão durante o carregamento
+                  label: _isLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : const Text(
+                          "Criar Demanda",
+                          style: TextStyle(color: Colors.white),
+                        ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
                     padding: const EdgeInsets.symmetric(

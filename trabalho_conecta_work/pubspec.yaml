@@ -13,7 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_floating_bottom_bar: ^1.2.0
   searchfield: ^1.1.6
-  font_awesome_flutter: ^10.1.0
+  font_awesome_flutter: ^10.4.0
   image_picker: ^1.1.2
   parse_server_sdk_flutter: ^8.0.0
   file_picker: ^5.2.3

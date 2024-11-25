@@ -12,7 +12,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   Future<void> _registerUser() async {
     final username = _nameController.text.trim();
@@ -20,7 +21,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    if (username.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       _showMessage("Preencha todos os campos.");
       return;
     }
@@ -30,8 +34,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // Verificar se o email já existe no sistema
+    final query = QueryBuilder<ParseUser>(ParseUser.forQuery());
+    query.whereEqualTo('email', email);
+    var emailCheck = await query.query();
+
+    if (emailCheck.success && emailCheck.results?.isNotEmpty == true) {
+      _showMessage("Este e-mail já está em uso.");
+      return;
+    }
+
     final user = ParseUser.createUser(username, password, email);
 
+    final acl = ParseACL();
+    acl.setPublicReadAccess(allowed: true);
+    acl.setPublicWriteAccess(allowed: false);
+    user.setACL(acl);
     var response = await user.signUp();
     if (response.success) {
       _showMessage("Cadastro realizado com sucesso!");
@@ -63,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: 30), 
+                    SizedBox(height: 30),
                     Image.asset(
                       'assets/imagens/logo_b.png',
                       height: 100,
@@ -79,7 +97,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     SizedBox(height: 30),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 20.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8.0),
@@ -150,7 +169,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ElevatedButton(
                       onPressed: _registerUser,
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 100, vertical: 12),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 100, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
@@ -169,7 +189,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => LoginScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen()),
                         );
                       },
                       child: Text(
@@ -180,13 +201,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
               ),
-                 Positioned(
-                 top: 0,
-                  left: 16,
-                  child: IconButton(
-                  icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 255, 255)),
+              Positioned(
+                top: 0,
+                left: 16,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back,
+                      color: const Color.fromARGB(255, 255, 255, 255)),
                   onPressed: () {
-                 Navigator.pop(context);
+                    Navigator.pop(context);
                   },
                 ),
               ),
