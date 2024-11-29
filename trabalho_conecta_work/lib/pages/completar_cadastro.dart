@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
-import '../components/my_app_bar.dart'; 
+import 'package:trabalho_conecta_work/pages/home.dart';
 
 class CompleteProfileScreen extends StatelessWidget {
   final ParseUser user;
@@ -22,18 +22,14 @@ class CompleteProfileScreen extends StatelessWidget {
     final TextEditingController cityController = TextEditingController();
 
     return Scaffold(
-      appBar: const MyAppBar(),
+      appBar: AppBar(
+        title: const Text('Completar Cadastro'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
             TextField(
               controller: descriptionController,
               decoration: const InputDecoration(labelText: 'Breve Descrição'),
@@ -143,10 +139,12 @@ class CompleteProfileScreen extends StatelessWidget {
                     if (response.success) {
                       Navigator.pushReplacementNamed(context, '/home');
                     } else {
-                      _showErrorDialog(context, response.error?.message ?? 'Erro desconhecido');
+                      _showErrorDialog(
+                          context, response.error?.message ?? 'Erro desconhecido');
                     }
                   } catch (e) {
-                    _showErrorDialog(context, 'Formato de data inválido. Use dd/MM/yyyy.');
+                    _showErrorDialog(
+                        context, 'Formato de data inválido. Use dd/MM/yyyy.');
                   }
                 },
                 child: const Text('Salvar e Continuar'),
