@@ -6,6 +6,9 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:trabalho_conecta_work/pages/desc_demanda.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:math';
 
 class Demanda extends StatefulWidget {
   final String categoria;
@@ -41,69 +44,159 @@ class _DemandaState extends State<Demanda> {
     }
   }
 
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double R = 6371000;
+    final double phi1 = lat1 * (3.141592653589793 / 180);
+    final double phi2 = lat2 * (3.141592653589793 / 180);
+    final double deltaPhi = (lat2 - lat1) * (3.141592653589793 / 180);
+    final double deltaLambda = (lon2 - lon1) * (3.141592653589793 / 180);
+
+    final double a = (sin(deltaPhi / 2) * sin(deltaPhi / 2)) +
+        cos(phi1) * cos(phi2) * (sin(deltaLambda / 2) * sin(deltaLambda / 2));
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return R * c;
+  }
+
   @override
   void initState() {
     super.initState();
-    _getUserLocation();
+
+    _getUserLocation().then((userPosition) {
+      // Após obter a posição do usuário, carrega as demandas próximas
+      _getNearbyDemandas(userPosition);
+    }).catchError((e) {
+      print("Erro ao obter localização: $e");
+    });
+
     _fetchDemandas();
-    _checkGPSStatus(); // Verifica se o GPS está ativado
-    _getUserLocation();
+    _checkGPSStatus();
   }
 
-  Future<void> _getUserLocation() async {
-    if (_isPermissionRequested) return; // Evita solicitações duplicadas
+  Future<void> fetchCityFromGoogle(double latitude, double longitude) async {
+    const String apiKey = 'AIzaSyDQeC9ygvE5EYS-ac4brnHiwmMAvpuLy7s';
+    final String url =
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=10000&key=$apiKey';
 
-    _isPermissionRequested =
-        true; // Marca que a solicitação de permissão está em andamento
+    try {
+      final response = await http.get(Uri.parse(url));
 
-    // Solicita permissão de localização
-    PermissionStatus permission = await Permission.location.request();
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
 
-    if (permission.isGranted) {
-      try {
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-
-        userPosition = position;
-
-        List<Placemark> placemarks = await placemarkFromCoordinates(
-            position.latitude, position.longitude);
-
-        if (placemarks.isNotEmpty) {
-          Placemark place = placemarks[0];
-
-          if (mounted) {
-            setState(() {
-              userCity = place.locality ?? "Cidade não disponível";
-              userState = place.administrativeArea ?? "Estado não disponível";
-              userCountry = place.country ?? "País não disponível";
-            });
-          }
+        if (data['results'].isNotEmpty) {
+          final placeName = data['results'][0]['name'];
+          print('Cidade detectada: $placeName');
+          setState(() {
+            userCity = placeName;
+          });
         } else {
-          _setDefaultLocationValues("Localização não encontrada");
+          print('Nenhum resultado encontrado na API.');
         }
-      } catch (e) {
-        _setDefaultLocationValues("Erro ao obter localização");
-        print("Erro: $e");
+      } else {
+        print('Erro na API do Google: ${response.statusCode}');
       }
-    } else {
-      // Se a permissão não for concedida, pede para o usuário dar permissão
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Permissão para usar a localização não concedida.')),
-      );
-      // Você pode redirecionar o usuário para as configurações do aplicativo para dar permissão
-      openAppSettings();
+    } catch (e) {
+      print('Erro ao fazer requisição para o Google Places API: $e');
+    }
+  }
+
+  Future<Position> _getUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Localização desabilitada');
     }
 
-    _isPermissionRequested =
-        false; // Libera a flag após a permissão ser processada
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Permissão de localização negada');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Permissão de localização permanentemente negada');
+    }
+
+    try {
+      return await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+    } catch (e) {
+      return Future.error('Erro ao obter a localização: $e');
+    }
+  }
+
+  Future<void> _getNearbyDemandas(Position userPosition) async {
+    try {
+      final queryCategoria = QueryBuilder<ParseObject>(ParseObject('Categoria'))
+        ..whereEqualTo('nome', widget.categoria);
+      final responseCategoria = await queryCategoria.query();
+
+      if (responseCategoria.success && responseCategoria.results != null) {
+        final categoria = responseCategoria.results!.first as ParseObject;
+        final categoriaId = categoria.objectId!;
+
+        final userGeoPoint = ParseGeoPoint(
+          latitude: userPosition.latitude,
+          longitude: userPosition.longitude,
+        );
+
+        final queryDemandas = QueryBuilder<ParseObject>(ParseObject('Demanda'))
+          ..whereWithinKilometers('coordenada', userGeoPoint, 10)
+          ..whereEqualTo('categoria_pointer',
+              ParseObject('Categoria')..objectId = categoriaId)
+          ..includeObject(['usuario_pointer'])
+          ..orderByDescending('createdAt');
+
+        final responseDemandas = await queryDemandas.query();
+
+        if (responseDemandas.success && responseDemandas.results != null) {
+          setState(() {
+            demandas = responseDemandas.results as List<ParseObject>;
+            isLoading = false;
+
+            for (var demanda in demandas) {
+              final criador = demanda.get<ParseObject>('usuario_pointer');
+              if (criador != null) {
+                final criadorNome =
+                    criador.get<String>('username') ?? 'Criador desconhecido';
+                final fotoFile = criador.get<ParseFile>('profileImage');
+                final criadorFoto = fotoFile?.url ?? '';
+
+                demanda.set<String>('criador_nome', criadorNome);
+                demanda.set<String>('criador_foto', criadorFoto);
+              }
+            }
+          });
+        } else {
+          setState(() {
+            demandas = [];
+            isLoading = false;
+          });
+          print('Nenhuma demanda encontrada na categoria selecionada.');
+        }
+      } else {
+        setState(() {
+          demandas = [];
+          isLoading = false;
+        });
+        print('Categoria não encontrada.');
+      }
+    } catch (e) {
+      setState(() {
+        demandas = [];
+        isLoading = false;
+      });
+      print('Erro ao buscar demandas próximas: $e');
+    }
   }
 
   void _setDefaultLocationValues(String errorMessage) {
     if (mounted) {
-      // Verificação se o widget ainda está montado
       setState(() {
         userCity = errorMessage;
         userState = "Estado não disponível";
@@ -113,8 +206,17 @@ class _DemandaState extends State<Demanda> {
   }
 
   Future<void> _fetchDemandas() async {
+    if (userPosition == null) {
+      print('Posição do usuário não disponível.');
+      return;
+    }
+
     try {
-      // Consulta para encontrar a categoria
+      final userGeoPoint = ParseGeoPoint(
+        latitude: userPosition!.latitude,
+        longitude: userPosition!.longitude,
+      );
+
       final queryCategoria = QueryBuilder<ParseObject>(ParseObject('Categoria'))
         ..whereEqualTo('nome', widget.categoria);
 
@@ -124,74 +226,37 @@ class _DemandaState extends State<Demanda> {
         final categoria = responseCategoria.results!.first as ParseObject;
         final categoriaId = categoria.objectId!;
 
-        // Consulta para buscar as demandas relacionadas à categoria
         final queryDemanda = QueryBuilder<ParseObject>(ParseObject('Demanda'))
           ..whereEqualTo('categoria_pointer',
               ParseObject('Categoria')..objectId = categoriaId)
-          ..includeObject(['usuario_pointer']) // Incluindo o ponteiro
+          ..whereWithinKilometers(
+              'coordenada', userGeoPoint, 10) // Filtrar por proximidade (10 km)
+          ..includeObject(['usuario_pointer']) // Inclui os dados do criador
           ..orderByDescending('createdAt');
 
         final responseDemanda = await queryDemanda.query();
 
         if (responseDemanda.success && responseDemanda.results != null) {
           if (mounted) {
-            // Verificação se o widget ainda está montado
             setState(() {
               demandas = responseDemanda.results as List<ParseObject>;
               isLoading = false;
-
-              // Adicionar dados do criador diretamente no objeto de demanda
-              for (var demanda in demandas) {
-                final criador = demanda.get<ParseObject>(
-                    'usuario_pointer'); // Obtém o criador da demanda
-                if (criador != null) {
-                  // Recupera o nome do criador
-                  final criadorNome =
-                      criador.get<String>('username') ?? 'Criador desconhecido';
-
-                  // Recupera a foto do perfil, se existir
-                  final fotoFile = criador.get<ParseFile>('profileImage');
-                  final criadorFoto =
-                      fotoFile?.url; // Obtém a URL da foto, caso exista
-
-                  // Se não houver foto, atribui uma foto padrão
-                  final fotoUrl = criadorFoto ?? '';
-
-                  // Atribuindo à demanda
-                  demanda.set<String>('criador_nome', criadorNome);
-                  demanda.set<String>('criador_foto', fotoUrl);
-                }
-              }
             });
           }
         } else {
           if (mounted) {
-            // Verificação se o widget ainda está montado
             setState(() {
               demandas = [];
-              isLoading = false; // Para o carregamento
+              isLoading = false;
             });
           }
-          print('Nenhuma demanda encontrada.');
+          print(
+              'Nenhuma demanda encontrada para a categoria e localização especificadas.');
         }
       } else {
-        if (mounted) {
-          // Verificação se o widget ainda está montado
-          setState(() {
-            demandas = [];
-            isLoading = false; // Para o carregamento
-          });
-        }
         print('Categoria não encontrada.');
       }
     } catch (e) {
-      if (mounted) {
-        // Verificação se o widget ainda está montado
-        setState(() {
-          demandas = [];
-          isLoading = false; // Para o carregamento
-        });
-      }
       print('Erro ao buscar demandas: $e');
     }
   }
@@ -295,10 +360,8 @@ class _DemandaState extends State<Demanda> {
                                 InkWell(
                                   onTap: _openMap,
                                   child: Text(
-                                    userCity != null &&
-                                            userState != null &&
-                                            userCountry != null
-                                        ? 'Sua localização: ${userCity ?? ''}, ${userState ?? ''}, ${userCountry ?? ''}'
+                                    userCity != null
+                                        ? 'Sua localização: $userCity'
                                         : 'Localização não disponível',
                                     style: const TextStyle(
                                       fontSize: 14,
@@ -360,7 +423,7 @@ class _DemandaState extends State<Demanda> {
                                             child: Padding(
                                               padding: const EdgeInsets.all(5),
                                               child: Container(
-                                                height: 280,
+                                                height: 300,
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(5),
@@ -457,7 +520,7 @@ class _DemandaState extends State<Demanda> {
                                                     Padding(
                                                       padding:
                                                           const EdgeInsets.all(
-                                                              8.0),
+                                                              4.0),
                                                       child: Text(
                                                         titulo,
                                                         style: const TextStyle(
@@ -474,7 +537,7 @@ class _DemandaState extends State<Demanda> {
                                                     Padding(
                                                       padding: const EdgeInsets
                                                           .symmetric(
-                                                          horizontal: 8.0),
+                                                          horizontal: 4.0),
                                                       child: Text(
                                                         descricao,
                                                         style: const TextStyle(

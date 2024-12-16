@@ -55,13 +55,54 @@ class _NovaDemandaState extends State<NovaDemanda> {
     }
   }
 
+  Widget _buildImagePreview() {
+    if (_imageFiles == null || _imageFiles!.isEmpty) {
+      return Container();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
+      child: Wrap(
+        spacing: 8.0,
+        children: _imageFiles!.map((image) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(image.path),
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Future<File> _saveTempFile(List<int> bytes) async {
+    final tempDir = await Directory.systemTemp.createTemp();
+    final tempFile = File('${tempDir.path}/image.png');
+    return tempFile.writeAsBytes(bytes);
+  }
+
+  String normalizeFileName(String fileName) {
+    String normalizedName = '';
+
+    // Itera sobre cada caractere do nome do arquivo
+    fileName.split('').forEach((char) {
+      // Verifica se o caractere é válido
+      if (RegExp(r'[a-zA-Z._-]').hasMatch(char)) {
+        normalizedName += char; // Adiciona o caractere válido à string
+      }
+    });
+
+    return normalizedName;
+  }
+
   Future<void> criarDemanda() async {
-    // Inicia o carregamento
     setState(() {
       _isLoading = true;
     });
 
-    // Validação dos campos
     if (_titleController.text.isEmpty ||
         _valueController.text.isEmpty ||
         selectedCategoryId == null ||
@@ -70,7 +111,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
         selectedLatitude == null ||
         selectedLongitude == null) {
       setState(() {
-        _isLoading = false; // Finaliza o carregamento em caso de erro
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Preencha todos os campos')),
@@ -81,7 +122,7 @@ class _NovaDemandaState extends State<NovaDemanda> {
     ParseUser? currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) {
       setState(() {
-        _isLoading = false; // Finaliza o carregamento em caso de erro
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Usuário não autenticado')),
@@ -106,7 +147,12 @@ class _NovaDemandaState extends State<NovaDemanda> {
     if (_imageFiles != null && _imageFiles!.isNotEmpty) {
       final List<ParseFile> parseFiles = [];
       for (var image in _imageFiles!) {
-        ParseFile parseImage = ParseFile(File(image.path));
+        String originalFileName = image.path.split('/').last;
+        String normalizedFileName = normalizeFileName(
+            originalFileName); // Normalizando o nome do arquivo
+
+        ParseFile parseImage =
+            ParseFile(File(image.path), name: normalizedFileName);
         ParseACL acl = ParseACL();
         acl.setPublicWriteAccess(allowed: true);
         acl.setPublicReadAccess(allowed: true);
@@ -117,22 +163,22 @@ class _NovaDemandaState extends State<NovaDemanda> {
           parseFiles.add(parseImage);
         } else {
           setState(() {
-            _isLoading = false; // Finaliza o carregamento em caso de erro
+            _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
-                    'Erro ao salvar a imagem: ${saveResponse.error?.message}')),
+                    'Erro ao salvar a imagem "${normalizedFileName}": ${saveResponse.error?.message}')),
           );
+          return;
         }
       }
       demanda.set('imagem', parseFiles);
     }
 
     final response = await demanda.save();
-
     setState(() {
-      _isLoading = false; // Finaliza o carregamento
+      _isLoading = false;
     });
 
     if (response.success) {
@@ -140,7 +186,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
         const SnackBar(content: Text('Demanda criada com sucesso!')),
       );
 
-      // Limpar campos após sucesso
       _titleController.clear();
       _valueController.clear();
       _descriptionController.clear();
@@ -226,29 +271,6 @@ class _NovaDemandaState extends State<NovaDemanda> {
         _imageFiles = selectedImages;
       });
     }
-  }
-
-  Widget _buildImagePreview() {
-    if (_imageFiles == null || _imageFiles!.isEmpty) {
-      return Container();
-    }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0),
-      child: Wrap(
-        spacing: 8.0,
-        children: _imageFiles!.map((image) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.file(
-              File(image.path),
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-          );
-        }).toList(),
-      ),
-    );
   }
 
   Widget _buildLocationSuggestions() {

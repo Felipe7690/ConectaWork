@@ -302,7 +302,7 @@ class _DescDemandaState extends State<DescDemanda> {
                     ? NetworkImage(_criadorFoto!)
                     : const AssetImage('assets/imagens/default_avatar.png')
                         as ImageProvider,
-                radius: 30,
+                radius: 20,
               ),
               const SizedBox(width: 10),
               Text(
