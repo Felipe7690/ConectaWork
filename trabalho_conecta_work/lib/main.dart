@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trabalho_conecta_work/pages/completar_cadastro.dart';
+import 'package:trabalho_conecta_work/pages/curriculo.dart';
 import 'package:trabalho_conecta_work/pages/home.dart';
 import 'package:trabalho_conecta_work/pages/proposta.dart';
 import 'package:trabalho_conecta_work/pages/tela_cadastrar.dart';
@@ -35,6 +36,7 @@ class MainApp extends StatelessWidget {
         '/register': (context) => RegisterScreen(),
         '/home': (context) => HomePage(),
         '/propostas': (context) => ProposalScreen(),
+        '/curriculo': (context) => Curriculum(),
         '/completar_cadastro': (context) => FutureBuilder<ParseUser?>(
               future: _getCurrentUser(), // Verifica se o usuário está logado
               builder: (context, snapshot) {

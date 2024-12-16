@@ -28,23 +28,26 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
     final ParseUser? currentUser = await ParseUser.currentUser() as ParseUser?;
 
     if (currentUser == null) {
-      print('Error: Não há usuário logado');
+      print('Erro: Não há usuário logado');
       return;
     }
 
-    // Consulta para buscar propostas enviadas
-    QueryBuilder<ParseObject> sentQuery = QueryBuilder<ParseObject>(ParseObject('Proposal'))
-      ..whereEqualTo('type', 'sent')
-      ..whereEqualTo('user', currentUser);
-
-    // Consulta para buscar propostas recebidas
-    QueryBuilder<ParseObject> receivedQuery = QueryBuilder<ParseObject>(ParseObject('Proposal'))
-      ..whereEqualTo('type', 'received')
-      ..whereEqualTo('user', currentUser);
-
     try {
-      final ParseResponse sentResponse = await sentQuery.query();
-      final ParseResponse receivedResponse = await receivedQuery.query();
+      // Consulta para propostas enviadas
+      QueryBuilder<ParseObject> sentQuery = QueryBuilder<ParseObject>(ParseObject('Proposal'))
+        ..whereEqualTo('pointer_user', currentUser)
+        ..includeObject(['pointer_demanda.usuario_pointer']); // Inclui demanda e usuário responsável
+
+      // Consulta para propostas recebidas
+      QueryBuilder<ParseObject> receivedQuery = QueryBuilder<ParseObject>(ParseObject('Proposal'))
+        ..whereEqualTo('pointer_demanda.usuario_pointer', currentUser)
+        ..includeObject(['pointer_demanda', 'pointer_user']); // Inclui a demanda e o usuário que enviou
+
+      // Executa as consultas em paralelo
+      final responses = await Future.wait([sentQuery.query(), receivedQuery.query()]);
+
+      final ParseResponse sentResponse = responses[0];
+      final ParseResponse receivedResponse = responses[1];
 
       if (sentResponse.success && receivedResponse.success) {
         setState(() {
@@ -53,7 +56,7 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
         });
       }
     } catch (e) {
-      print('Erro ao buscar propostas $e');
+      print('Erro ao buscar propostas: $e');
     }
   }
 
@@ -61,10 +64,10 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Propostas'),
+        title: const Text('Propostas'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: [
+          tabs: const [
             Tab(text: 'Enviadas'),
             Tab(text: 'Recebidas'),
           ],
@@ -73,29 +76,61 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildProposalList(sentProposals),
-          _buildProposalList(receivedProposals),
+          _buildProposalList(sentProposals, 'Enviada'),
+          _buildProposalList(receivedProposals, 'Recebida'),
         ],
       ),
     );
   }
 
-  //Retorna o Conteúdo
-  Widget _buildProposalList(List<ParseObject> proposals) {
+  Widget _buildProposalList(List<ParseObject> proposals, String type) {
     if (proposals.isEmpty) {
-      return Container();
+      return Center(
+        child: Text('Nenhuma proposta $type.'),
+      );
     }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemCount: proposals.length,
       itemBuilder: (context, index) {
         final proposal = proposals[index];
-        final title = proposal.get<String>('title') ?? 'Sem titulo';
-        final details = proposal.get<String>('detail') ?? 'Sem detalhes';
 
-        return ListTile(
-          title: Text(title),
-          subtitle: Text(details),
+
+        ParseObject? demandaPointer = proposal.get<ParseObject>('pointer_demanda');
+        ParseObject? userPointer;
+
+        if (type == 'Recebida') {
+          userPointer = proposal.get<ParseObject>('pointer_user'); // Quem enviou a proposta
+        } else if (type == 'Enviada') {
+          userPointer = demandaPointer?.get<ParseObject>('usuario_pointer'); // Recebedor
+        }
+
+
+        final demandTitle = demandaPointer?.get<String>('titulo') ?? 'Título não disponível';
+        final demandLocate = demandaPointer?.get<String>('localizacao') ?? 'Localização não informada';
+        final senderName = userPointer?.get<String>('username') ?? 'Usuário desconhecido';
+
+
+        final telefone = proposal.get<String>('telefone') ?? 'N/A';
+        final entrega = proposal.get<DateTime>('entrega')?.toLocal().toString() ?? 'Sem data';
+
+        return Card(
+          elevation: 3,
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          child: ListTile(
+            title: Text('Demanda: $demandTitle'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Localização: $demandLocate'),
+                Text('Telefone: $telefone'),
+                Text('Data de Entrega: $entrega'),
+                if (type == 'Enviada') Text('Recebedor: $senderName'),
+                if (type == 'Recebida') Text('Enviado por: $senderName'),
+              ],
+            ),
+          ),
         );
       },
     );
