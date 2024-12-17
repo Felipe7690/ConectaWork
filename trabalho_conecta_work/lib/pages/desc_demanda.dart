@@ -385,7 +385,7 @@ class _DescDemandaState extends State<DescDemanda> {
               backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),

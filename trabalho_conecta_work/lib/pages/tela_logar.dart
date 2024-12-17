@@ -31,7 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => HomePage()),
       );
     } else {
-      _showMessage("Falha no login: ${response.error?.message ?? 'Erro desconhecido'}");
+      _showMessage(
+          "Falha no login: ${response.error?.message ?? 'Erro desconhecido'}");
     }
   }
 
@@ -51,7 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
             top: 16,
             left: 16,
             child: IconButton(
-              icon: Icon(Icons.arrow_back, color: const Color.fromARGB(255, 255, 255, 255)),
+              icon: Icon(Icons.arrow_back,
+                  color: const Color.fromARGB(255, 255, 255, 255)),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -80,9 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 30),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 10.0),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color.fromARGB(255, 255, 255, 255),
                         borderRadius: BorderRadius.circular(8.0),
                         boxShadow: [
                           BoxShadow(
@@ -119,25 +122,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             obscureText: true,
                           ),
+                          SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: _loginUser,
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 100, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              backgroundColor: const Color(0xFF004BA8),
+                            ),
+                            child: Text(
+                              'Entrar',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
                         ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _loginUser,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 100, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        backgroundColor: Colors.blue,
-                      ),
-                      child: Text(
-                        'Entrar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
                       ),
                     ),
                     SizedBox(height: 20),
@@ -147,10 +151,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextButton(
                           onPressed: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => RegisterScreen()
-                              )
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => RegisterScreen()));
                           },
                           child: Text(
                             'Cadastrar',

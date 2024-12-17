@@ -77,7 +77,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                padding: const EdgeInsets.symmetric(horizontal: 22.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -162,26 +162,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             obscureText: true,
                           ),
+                          SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: _registerUser,
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 100, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              backgroundColor: Color(0xFF004BA8),
+                            ),
+                            child: Text(
+                              'Cadastrar',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
                         ],
-                      ),
-                    ),
-                    SizedBox(height: 25),
-                    ElevatedButton(
-                      onPressed: _registerUser,
-                      style: ElevatedButton.styleFrom(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 100, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        backgroundColor: Colors.blue,
-                      ),
-                      child: Text(
-                        'Cadastrar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
                       ),
                     ),
                     SizedBox(height: 20),
