@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:trabalho_conecta_work/pages/demanda.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+import 'package:trabalho_conecta_work/pages/demanda.dart';
+import 'package:trabalho_conecta_work/pages/desc_demanda.dart';
+import 'package:trabalho_conecta_work/pages/pesquisar.dart';
 
 class Inicio extends StatefulWidget {
   const Inicio({super.key});
@@ -15,31 +18,8 @@ class _InicioState extends State<Inicio> {
     'assets/imagens/banner3.jpg',
   ];
 
-  List<Map<String, dynamic>> servicosPopulares = []; // Lista vazia inicialmente
-
-  final List<Map<String, dynamic>> demandasProximas = const [
-    {
-      'titulo': 'Reparo de encanamento',
-      'localizacao': 'Centro, Cidade A',
-      'distancia': '2 km'
-    },
-    {
-      'titulo': 'Instalação elétrica',
-      'localizacao': 'Bairro B, Cidade A',
-      'distancia': '5 km'
-    },
-    {
-      'titulo': 'Pintura de apartamento',
-      'localizacao': 'Bairro C, Cidade A',
-      'distancia': '7 km'
-    },
-    {
-      'titulo': 'Jardinagem',
-      'localizacao': 'Bairro D, Cidade B',
-      'distancia': '10 km'
-    },
-  ];
-
+  List<Map<String, dynamic>> servicosPopulares = [];
+  List<Map<String, dynamic>> demandasProximas = [];
   int _currentIndex = 0;
 
   final Map<String, IconData> categoryIcons = {
@@ -60,7 +40,7 @@ class _InicioState extends State<Inicio> {
 
   IconData _getIconForCategory(String nome) {
     final lowerCaseName = nome.toLowerCase().trim();
-    return categoryIcons[lowerCaseName] ?? Icons.help_outline; // Ícone genérico
+    return categoryIcons[lowerCaseName] ?? Icons.help_outline;
   }
 
   Future<void> _fetchCategorias() async {
@@ -73,7 +53,7 @@ class _InicioState extends State<Inicio> {
         final nome = item.get<String>('nome') ?? 'Desconhecida';
         categoriasList.add({
           'nome': nome,
-          'icone': _getIconForCategory(nome), // Ícone baseado no mapa
+          'icone': _getIconForCategory(nome),
         });
       }
 
@@ -85,10 +65,77 @@ class _InicioState extends State<Inicio> {
     }
   }
 
+  Future<void> _fetchDemandasProximas() async {
+    try {
+      // Verificar permissões de localização
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Permissão de localização negada');
+        }
+      }
+
+      // Obtém a localização atual do usuário
+      final Position userPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final ParseGeoPoint userGeoPoint = ParseGeoPoint(
+        latitude: userPosition.latitude,
+        longitude: userPosition.longitude,
+      );
+
+      // Busca as 5 demandas mais recentes em até 10 km de distância
+      final query = QueryBuilder(ParseObject('Demanda'))
+        ..whereWithinKilometers('coordenada', userGeoPoint, 10)
+        ..setLimit(4)
+        ..orderByDescending('createdAt');
+      final response = await query.query();
+
+      if (response.success && response.results != null) {
+        List<Map<String, dynamic>> demandasList = [];
+        for (var item in response.results!) {
+          final titulo = item.get<String>('titulo') ?? 'Sem título';
+          final localizacao =
+              item.get<String>('localizacao') ?? 'Localização desconhecida';
+          final coordenada = item.get<ParseGeoPoint>('coordenada');
+
+          double distancia = 0;
+          if (coordenada != null) {
+            distancia = Geolocator.distanceBetween(
+                  userPosition.latitude,
+                  userPosition.longitude,
+                  coordenada.latitude,
+                  coordenada.longitude,
+                ) /
+                1000; // Converte para km
+          }
+
+          demandasList.add({
+            'titulo': titulo,
+            'localizacao': localizacao,
+            'distancia': '${distancia.toStringAsFixed(2)} km',
+            'objectId': item.objectId,
+          });
+        }
+
+        setState(() {
+          demandasProximas = demandasList;
+        });
+      } else {
+        print('Erro ao buscar demandas próximas: ${response.error?.message}');
+      }
+    } catch (e) {
+      print('Erro ao obter localização ou buscar demandas: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchCategorias();
+    _fetchDemandasProximas();
   }
 
   @override
@@ -244,59 +291,83 @@ class _InicioState extends State<Inicio> {
                       'Demandas Próximas',
                       style: TextStyle(fontSize: 20, color: Colors.black),
                     ),
-                    const SizedBox(height: 10),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: demandasProximas.length,
-                      itemBuilder: (context, index) {
-                        final demanda = demandasProximas[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          padding: const EdgeInsets.all(15),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                              ),
-                            ],
+                    const SizedBox(height: 20),
+                    demandasProximas.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: demandasProximas.length,
+                            itemBuilder: (context, index) {
+                              final demanda = demandasProximas[index];
+
+                              final titulo =
+                                  demanda['titulo'] ?? 'Título não disponível';
+                              final localizacao = demanda['localizacao'] ??
+                                  'Localização não disponível';
+                              final distancia = demanda['distancia'] ??
+                                  'Distância não disponível';
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DescDemanda(
+                                          objectId: demanda['objectId']),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 2,
+                                        blurRadius: 5,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        titulo,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF004AAD),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        localizacao,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        distancia,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                demanda['titulo'],
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF004AAD),
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                demanda['localizacao'],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                'Distância: ${demanda['distancia']}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    const SizedBox(height: 50),
                   ],
                 ),
               ),
