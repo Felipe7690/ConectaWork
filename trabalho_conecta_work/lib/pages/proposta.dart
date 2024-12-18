@@ -64,14 +64,18 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Propostas'),
+        title: const Text('Propostas', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromARGB(255, 0, 74, 173),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'Enviadas'),
             Tab(text: 'Recebidas'),
           ],
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
         ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -96,7 +100,6 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
       itemBuilder: (context, index) {
         final proposal = proposals[index];
 
-
         ParseObject? demandaPointer = proposal.get<ParseObject>('pointer_demanda');
         ParseObject? userPointer;
 
@@ -106,11 +109,9 @@ class _ProposalScreenState extends State<ProposalScreen> with SingleTickerProvid
           userPointer = demandaPointer?.get<ParseObject>('usuario_pointer'); // Recebedor
         }
 
-
         final demandTitle = demandaPointer?.get<String>('titulo') ?? 'Título não disponível';
         final demandLocate = demandaPointer?.get<String>('localizacao') ?? 'Localização não informada';
         final senderName = userPointer?.get<String>('username') ?? 'Usuário desconhecido';
-
 
         final telefone = proposal.get<String>('telefone') ?? 'N/A';
         final entrega = proposal.get<DateTime>('entrega')?.toLocal().toString() ?? 'Sem data';
