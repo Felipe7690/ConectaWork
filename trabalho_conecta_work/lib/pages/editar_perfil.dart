@@ -134,13 +134,15 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Perfil'),
+        title: const Text('Editar Perfil', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromARGB(255, 0, 74, 173),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: const Icon(Icons.save, color: Colors.white),
             onPressed: _saveProfile,
           ),
         ],
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -161,15 +163,33 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             Center(
               child: ElevatedButton(
                 onPressed: _selectImage,
-                child: const Text('Alterar imagem'),
+                child: const Text(
+                  "Alterar imagem",
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 74, 173),
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,8 +198,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                   const Text(
                     'Dados',
                     style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextFormField(
@@ -215,8 +235,16 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,8 +252,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                   const Text(
                     'Endereço',
                     style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextFormField(
