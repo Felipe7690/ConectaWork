@@ -31,9 +31,21 @@ class CompleteProfileScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context);             
               },
             ),
+            const SizedBox(height: 20),
+            Center(
+              child: const Text(
+                'Completar Cadastro',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 0, 0, 0), 
+                ),
+              ),
+            ),
+            
             TextField(
               controller: descriptionController,
               decoration: const InputDecoration(labelText: 'Breve Descrição'),
@@ -149,7 +161,17 @@ class CompleteProfileScreen extends StatelessWidget {
                     _showErrorDialog(context, 'Formato de data inválido. Use dd/MM/yyyy.');
                   }
                 },
-                child: const Text('Salvar e Continuar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(0, 74, 173, 1),
+                   padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                ),
+                child: const Text('Salvar e Continuar',
+                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))
+                )
               ),
             ),
           ],
