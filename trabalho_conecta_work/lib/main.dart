@@ -11,8 +11,8 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const keyApplicationId = '89IfoOBJSoVcMHAW5f9IbFIUfkkoT6MbElEfpeJa';
-  const keyClientKey = 'eGXlRJtS1A3je6ZCqG1jNNABF8N1q1Yv9EQYUPnK';
+  const keyApplicationId = 'EkIrRkqtiHoxcZNxyLh1DrWuAnJYrzm6hmdIoQpo';
+  const keyClientKey = 'syruc7EpG2sObLu5kcbseCxSFtRmqCIT7C2A0ZFE';
   const keyParseServerUrl = 'https://parseapi.back4app.com';
 
   await Parse().initialize(
