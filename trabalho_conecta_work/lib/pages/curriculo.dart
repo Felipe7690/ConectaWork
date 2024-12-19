@@ -183,13 +183,22 @@ class Curriculum extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancelar'),
+                child: const Text(
+                  "Cancelar",
+                  style: TextStyle(color: Color.fromARGB(255, 0, 21, 205)),
+                ),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Salvar'),
+              child: const Text('Salvar',
+              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)
+              ),
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 74, 173),
+              )
             ),
           ],
         );
@@ -221,13 +230,22 @@ class Curriculum extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancelar'),
+                child: const Text(
+                  "Cancelar",
+                  style: TextStyle(color: Color.fromARGB(255, 0, 21, 205)),
+                ),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Salvar'),
+              child: const Text('Salvar',
+              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)
+              ),
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 74, 173),
+              )
             ),
           ],
         );
@@ -259,13 +277,22 @@ class Curriculum extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancelar'),
+                child: const Text(
+                  "Cancelar",
+                  style: TextStyle(color: Color.fromARGB(255, 0, 21, 205)),
+                ),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Salvar'),
+              child: const Text('Salvar',
+              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)
+              ),
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 74, 173),
+              )
             ),
           ],
         );
@@ -297,13 +324,22 @@ class Curriculum extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancelar'),
+                child: const Text(
+                  "Cancelar",
+                  style: TextStyle(color: Color.fromARGB(255, 0, 21, 205)),
+                ),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Salvar'),
+              child: const Text('Salvar',
+              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)
+              ),
+              ),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 74, 173),
+              )
             ),
           ],
         );
