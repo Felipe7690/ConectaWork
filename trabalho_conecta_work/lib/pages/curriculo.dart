@@ -8,7 +8,22 @@ class Curriculum extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
-      appBar: const MyAppBar(showAddIcon: false),
+      appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 0, 74, 173),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pop(); // Volta para a tela anterior
+          },
+        ),
+        title: const Text(
+          'Currículo',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        elevation: 0, // Remove a sombra da AppBar
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
